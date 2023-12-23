@@ -1,0 +1,206 @@
+---
+layout: post
+title:  "xdotool!"
+date:   2023-12-23
+categories: xdotool
+---
+
+In my first post on this new platform, I want to tell you how I use
+`xdotool`, a command-line program to simulate mouse actions and
+keypresses.
+
+
+# What does `xdotool` do?
+
+The description on the [main
+repository](https://github.com/jordansissel/xdotool) states
+
+> xdotool lets you simulate keyboard input and mouse activity, move and resize windows, etc. It does this using X11’s XTEST extension and other Xlib functions.
+
+(**Caution**: at the moment, it does not seem that `xdotool` supports
+Wayland. Since I'm still using X11, this is not an issue for me. If
+you use Wayland, I've heard that available alternatives are
+[dotool](https://git.sr.ht/~geb/dotool) or
+[ydotool](https://github.com/ReimuNotMoe/ydotool).)
+
+For instance, if you type
+
+    xdotool click 1
+
+the program will simulate the click of the left mouse button on the same spot where the actual mouse cursor is. Similarly,
+
+    xdotool type "Hello, world"
+
+will immediately type the characters `Hello, world` so fast that you'll probably see them *twice*: once before the prompt of your shell appears, and another when the shell catches up and shows the prompt:
+
+    [tomasi@maurizio-tombook ~] xdotool type "Hello, world"
+    Hello, world
+    [tomasi@maurizio-tombook ~] Hello, world
+
+Another possibility is to simulate key events like `Ctrl-X`, `Alt-F4`, etc.
+The program can also interact with windows and do more complicated stuff, but in this post I'll just show you what I usually do with these three basic tasks: mouse movements, keyboard typing, keypresses.
+
+
+# Typing passwords
+
+Somebody might think that `xdotool` has little practical use.
+When used alone, it is admittedly nothing special, but it unleashes its power when used in scripts or combined with the `sleep` command.
+
+A common pattern I use is to make the prompt wait for a few seconds to give me time to switch to another application using `Alt+Tab` and then fire `xdotool` to do some work.
+
+For instance, I regularly use [KeePassXC](https://keepassxc.org/) to manage my passwords.
+It's a password manager that lets you associate a password with different sites and even generate random passwords with high entropy.
+When I need to log to a website, I follow this routine:
+
+1. Open KeePassXC and select the website from my personal database;
+2. Press `Ctrl+B` to copy the username in the clipboard;
+3. Paste the username in the website;
+4. Press `Ctrl+C` to copy the password in the clipboard;
+5. Paste it again in the website.
+
+This procedure works 99% of the time, and provides me with a feeling of security: I am not using the same password in more than one website, as everybody knows this is **dangerous**. (If you do not know why, see [this XKCD comic](https://xkcd.com/792/)).
+
+However, there are a few website I have to use that require you to *type* your password, as they disable the clipboard while the focus is on the password field.
+I cannot really understand what is the purpose of this: purportedly, they say that in this way you are forced to actually remember your password. However, since the same websites require you to use complicated passwords with non-letter characters and digits, my feeling is that most of the users will just scratch it on a post-it and leave it on their monitor.
+But I digress.
+
+For these situations, I implemented [`typecb`](https://gist.github.com/ziotom78/2056c4c2c325910fad908d5218058fd6), a short Bash script that takes the contents of the clipboard and type it using `xdotool`:
+
+```sh
+#!/bin/sh
+
+if [ "$1" == "" ]; then
+    cat <<EOF
+Paste the contents of the keyboard as if they were typed using the keyboard
+
+Usage: $(basename $0) WAIT_TIME
+
+where WAIT_TIME is the delay, like "3s" (three seconds)
+EOF
+    exit 1
+fi
+
+readonly wait_time="$1"
+
+sleep $wait_time && xdotool type "$(xclip -o)"
+```
+
+The procedure I follow to log in in these website is just slightly modified:
+
+1. Open KeePassXC and select the website from my personal database *as usual*;
+2. Press `Ctrl+B` to copy the username in the clipboard *as usual*;
+3. Paste the username in the website *as usual*;
+4. Press `Ctrl+C` to copy the password in the clipboard *as usual*;
+5. Go back to the web browser;
+6. Press `Alt+F2`, which on my desktop (KDE) asks for a command to be executed;
+7. Type `typecb 1s` and see `xdotool` paste the password in the webbrowser
+
+I could automate the stuff a bit more, e.g. by including step 4 and 5 in `typecb` using `xdotool key Ctrl+C` and `xdotool key Alt+Tab`, but I use `typecb` in a few other situations where this would not be useful.
+
+# Filling forms
+
+Another situation where I find `xdotool` invaluable is in the filling of a few webforms required by my University.
+
+I have to track any student-related activity I do during my work hours, like classes and student reception.
+This means that every time I have a chat with a student, I am required to note down this time on a webform in a private personal page.
+Since I do a lot of student reception, this is a quite boring task to do, and it is exacerbated by the fact that the webpage requires a number of mouse clicks to focus the many input fields. (We're talking about *modern* web design, so of course `Tab` doesn't work reliably 100% of the time, sigh!)
+
+Here `xdotool` comes to the rescue.
+I painstakingly recorded the mouse movement I needed to select each of the entries and implemented a Bash script to simulate their sequence.
+It took me roughly half an hour to come with something that actually worked; the biggest part was picking the right screen coordinates (here `xdotool` helps again with its command `xdotool getmouselocation`) and calibrating the delays so that I give enough time to the webform to update its fields.
+To be sure that the coordinates do not change, I enlarged the Firefox window to full screen; otherwise, the script would work only if Firefox has its window always in the same place on the desktop.
+
+The script is quite long, here is just a snippet to give you a taste of how it is implemented:
+
+```bash
+#!/bin/bash
+
+readonly MOUSE_DELAY=0.25s
+readonly TYPE_DELAY_MS=50
+
+# Here comes the part where I parse command line arguments
+...
+
+# Scroll to the beginning of the page
+xdotool key Home
+sleep $MOUSE_DELAY
+
+# Click on «Nuova attività»
+xdotool mousemove 150 492
+sleep $MOUSE_DELAY
+xdotool click 1
+sleep $MOUSE_DELAY
+
+# Click on «Forma didattica»
+xdotool mousemove_relative -- 45 -172
+sleep $MOUSE_DELAY
+xdotool click 1
+sleep $MOUSE_DELAY
+
+# Pick the item from the combo box
+# 3 ↓ keys: "Compiti di orientamento/ricevimento per studenti"
+xdotool key Down Down Down Enter
+sleep $MOUSE_DELAY
+
+# Open the date control
+xdotool mousemove_relative -- -70 140
+sleep $MOUSE_DELAY
+xdotool click 1
+sleep $MOUSE_DELAY
+
+# Etc.
+...
+```
+
+Note the command `xdotool mousemove_relative`: this tells how much the mouse should move *with respect to its current position*.
+The first version of my script just used `xdotool mousemove` everywhere, which means that the coordinate are absolute: it's much easier to create the script in this way, as you just put the same numbers printed by `xdotool getmouselocation`.
+However, sometimes I change the KDE theme I use, and this affects the height of the title bars, the location of the task bar, etc.
+I found that these changes likely affect the placement of the widgets in the webpage.
+Using `xdotool mousemove` just once at the top of the script and then always rely on `xdotool mousemove_relative` ensures that every time I change the KDE theme, I must just fix the first call to `xdotool mousemove` and everything else continues to work. (Of course, this trick does not save me from changes to the layout of the webpage, but luckly the layout has been the same for years…)
+
+The script requires the parameters detailing my activity (the date, the number of hours, and the name of the student) to be passed on the command line:
+
+    ./unimi-insert-student-reception 23/12/2023 2 "Mario Rossi"
+
+Every time I have office hours, I keep track of the students in a CSV file on my desktop with this layout:
+
+```
+16/01/2023, 2, Mario Rossi
+19/01/2023, 1, Luca Bianchi
+...
+```
+
+Once in a while, I log in my University, open the page about activities, and I fire a short script that uses `gawk` to extract information from the CSV file and repeatedly call the `xdotool` script:
+
+```
+cat student-reception.csv | \
+    gawk -F "," '/./ { printf("unimi-insert-student-reception.sh \"%s\" %d \"%s\"\n", $1, $2, $3); }' > script.sh
+```
+
+This creates a file `script.sh` with this format:
+
+```sh
+unimi-insert-student-reception.sh "16/01/2023" 2 " Mario Rossi"
+unimi-insert-student-reception.sh "19/01/2023" 1 " Luca Bianchi"
+```
+
+(Yeah, I know I could make `gawk` directly call `unimi-insert-student-reception.sh`, but I like checking the sequence of commands before actually *firing* them.)
+
+I then run `script.sh` using the command
+
+    sleep 3s && bash script.sh
+
+where of course `sleep 3s` gives me enough time to switch to Firefox using `Alt+Tab`.
+
+
+# Recording demos
+
+I often record videos for my classes. They are used to teach how to use Git, how to write programs using IDEs, etc.
+
+I like that these videos are always kept up-to-date: if the video shows a Julia session, I would like that the banner shown when Julia starts presents a reasonably recent version number.
+Moreover, it can be that a recent version of the tool/website I am using in the video slightly changes its interface.
+
+I have recently started writing `xdotool` scripts that run the commands needed to perform the actions recorded in the video: in this way I can easily update the video.
+
+Surely it takes more time to prepare a video, but the result is far nices: there are no more wrong keypresses, delays due to me forgetting what to do next, etc.
+And I do no need to perform video editing!
