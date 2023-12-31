@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Morley triangles"
+title:  "Morley's triangles"
 date:   2023-12-31
 categories: geometry typescript
 ---
