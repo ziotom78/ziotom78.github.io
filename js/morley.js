@@ -137,9 +137,9 @@ class Triangle {
         let b = this.sideB;
         let c = this.sideC;
         let denom = a * x + b * y + c * z;
-        let add1 = mulSP(a * x / denom, this.pt1);
-        let add2 = mulSP(b * y / denom, this.pt2);
-        let add3 = mulSP(c * z / denom, this.pt3);
+        let add1 = mulSP((a * x) / denom, this.pt1);
+        let add2 = mulSP((b * y) / denom, this.pt2);
+        let add3 = mulSP((c * z) / denom, this.pt3);
         return new Point(add1.x + add2.x + add3.x, add1.y + add2.y + add3.y);
     }
     /// Modify the coordinates of one of the three vertexes
@@ -207,6 +207,9 @@ class PointDragEvent {
 class MorleyApp {
     constructor() {
         this.pressEventHandler = (ev) => {
+            if (this.touchEnabled) {
+                ev.preventDefault();
+            }
             let mousepos = this.mousePos(ev);
             let relativepos = new Point(mousepos.x - this.canvas.offsetLeft, mousepos.y - this.canvas.offsetTop);
             if (this.triangle.pt1.isCloseTo(relativepos)) {
@@ -226,6 +229,9 @@ class MorleyApp {
             if (this.dragEvent === undefined) {
                 return;
             }
+            if (this.touchEnabled) {
+                ev.preventDefault();
+            }
             let de = this.dragEvent;
             let mousepos = this.mousePos(ev);
             let relativepos = new Point(mousepos.x - this.canvas.offsetLeft, mousepos.y - this.canvas.offsetTop);
@@ -234,8 +240,11 @@ class MorleyApp {
             this.redraw();
             ev.preventDefault();
         };
-        this.releaseEventHandler = () => {
+        this.releaseEventHandler = (ev) => {
             this.dragEvent = undefined;
+            if (this.touchEnabled) {
+                ev.preventDefault();
+            }
         };
         let canvas = document.getElementById("morley_canvas");
         let context = canvas.getContext("2d");
@@ -245,22 +254,42 @@ class MorleyApp {
         this.height = canvas.height;
         // Create a visually interesting triangle that covers most of the canvas
         this.triangle = new Triangle(new Point(this.width * 0.2, this.height * 0.2), new Point(this.width * 0.8, this.height * 0.8), new Point(this.width * 0.6, this.height * 0.3));
+        // Typically, this variable is `true` on mobile devices and
+        // `false` on desktop computers
+        this.touchEnabled = "createTouch" in document || "onstarttouch" in window;
         this.dragEvent = undefined;
         this.redraw();
         this.createUserEvents();
     }
     createUserEvents() {
         let canvas = this.canvas;
-        canvas.addEventListener("mousedown", this.pressEventHandler);
-        canvas.addEventListener("mousemove", this.dragEventHandler);
-        canvas.addEventListener("mouseup", this.releaseEventHandler);
+        if (this.touchEnabled) {
+            canvas.addEventListener("touchstart", this.pressEventHandler);
+            canvas.addEventListener("touchmove", this.dragEventHandler);
+            canvas.addEventListener("touchend", this.releaseEventHandler);
+        }
+        else {
+            canvas.addEventListener("mousedown", this.pressEventHandler);
+            canvas.addEventListener("mousemove", this.dragEventHandler);
+            canvas.addEventListener("mouseup", this.releaseEventHandler);
+        }
     }
+    /**
+     * Return the position of the mouse/touch associated with an event
+     *
+     * @param ev The event
+     * @returns A `Point` object containing the position of the mouse/touch
+     * (absolute coordinates!)
+     */
     mousePos(ev) {
-        let mouseX = ev.changedTouches ?
-            ev.changedTouches[0].pageX : ev.pageX;
-        let mouseY = ev.changedTouches ?
-            ev.changedTouches[0].pageY : ev.pageY;
-        return new Point(mouseX, mouseY);
+        if (this.touchEnabled) {
+            let touchev = ev;
+            return new Point(touchev.changedTouches[0].pageX, touchev.changedTouches[0].pageY);
+        }
+        else {
+            let mouseev = ev;
+            return new Point(mouseev.pageX, mouseev.pageY);
+        }
     }
     line(pt1, pt2, color = "black") {
         let ctx = this.context;
