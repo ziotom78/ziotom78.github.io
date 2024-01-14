@@ -1,0 +1,123 @@
+---
+layout: post
+title:  "Retroprogramming with Borland Turbo C++ 3.0"
+date:   2024-01-14
+categories: c++
+katex: True
+---
+
+Since a few years I am a teacher assistant in a C++ class for second-year students at the department of physics of the Università degli Studi di Milano.
+It is a mandatory class where students learn how to use C++ and Object-Oriented Programming to solve numerical problems like root finding, integration, and differential equation solving.
+The teacher does not force people to use specific tools, but most of the students rely on G++ and Visual Studio Code to write their code. (It is mandatory that students use GNU Make to write their code, as the teacher believes that this is more instructive than learning higher-level tools like CMake.)
+The usage of Visual Studio Code is a big step forward, as in the pre-COVID era they all used Gedit, as VSCode was not available in the computers in the lab!
+
+However, when I learned C and C++ back in the '90s, I used the compilers by Borland, which provided a much smoother experience than Visual Studio Code and GNU Make: there was a project manager, you could easily navigate through compilation errors, there was an integrated help system, etc.
+At least, this is what I remembered…
+It has been ages since I fired my old copy of Turbo C++, and I must confess that sometimes I have thought that it might not have been *that* good, after all, when judged with the eyes of a 21st-century developer.
+In the 90s, several tools that we developers now take for granted did not exist: code formatters like `clang-format`, high-level features of the language, auto-completion, multiple cursors, refactoring tools, etc.
+Could it be that I was remembering things under a much better light than deserved?
+
+This week-end I decided to play a bit with the idea and used [Borland Turbo C++ 3.0 for DOS](https://en.wikipedia.org/wiki/Turbo_C%2B%2B) to write from scratch one of the programs that students must develop during the C++ course I mentioned above.
+I was the proud owner of a Borland Turbo C++ box, but unfortunately that box has been lost after several moves. (However, I still have the manuals on my bookshelf!)
+Luckly, the site [www.archive.org](https://archive.org/details/tcc_20210425) has a copy of Turbo C++ 3.0, and I was able to download and install it under a DOSBox virtual machine in just a couple of minutes. (It is available also through the website [WinWorldPC](https://winworldpc.com/product/turbo-c/3x).)
+
+# The IDE
+
+Here is what greeted me once I started `TC.EXE`:
+
+![](/assets/2024-01-14-turbocpp/tc_000.png)
+
+The Borland IDE looked gorgeous in '90s, and I must admit that I still find it attractive today.
+Nowadays I am used to JetBrains CLion and Qt Creator, but I often connect to remote HPC clusters using SSH, and having a nice-looking IDE that works on the terminal is surely something I would really enjoy!
+
+# Implementing the program
+
+I quickly implemented some code that implements the bisection algorithm to find the zeros of the function
+
+$$
+f(x) = 3x^2 + 5x + 2,
+$$
+
+which of course are $x_1 = -1$ and $x_2 = -2/3$. I used “Projects” to make sure that the compiler would have compiled both `MAIN.CPP` and `MATH.CPP`:
+
+![](/assets/2024-01-14-turbocpp/tc_001.png)
+
+Things were not *completely* immediate though, as it has been a long time since I used pre-standard C++. (Remember, Borland Turbo C++ 3.0 came out on November, 20th 1991!) Here are some of the notable things that the language did not support:
+
+1. Namespaces (no need to write `using namespace std` everywhere, which can admittedly be an advantage!);
+
+2. The header files of the standard library all end with `.h`, so it's `#include <iostream.h>`, not `#include <iostream>`;
+
+3. There is no `bool` type nor `true` or `false`, you're just supposed to use integers;
+
+4. Inlining was quite primitive and only worked for the simplest cases. I did not need it in my code, but if I had put even a simple `for` loop within a method in the header file declaring a class, this would have prevented the inliner from working.
+
+Borland C++ 3.0 supported primitive template programming, but this is something I did not need for this example: the function `bisect` I implemented just takes a pointer to a function `double f(double)` and does not do generic programming.
+
+
+# Running the program
+
+Once the program is written, it's just a matter of pressing `Ctrl+F9` to compile both `MAIN.CPP` and `MATH.CPP`, link them and run the executable.
+As I mentioned above, my program did not compile immediately because I attempted to use several facilities of C++ that were not available back in 1991.
+Fortunately, it's extremely easy to navigate the list of errors using Turbo C++: they are listed in a window, and pressing `Enter` moves to the line containing the error:
+
+![](/assets/2024-01-14-turbocpp/tc_002b.png)
+
+Once I fixed all the errors, the program ran correctly on a couple of cases:
+
+![](/assets/2024-01-14-turbocpp/tc_002.png)
+
+Honestly, I would have hoped to spot some bug, because I really wanted to use the integrated debugger!
+Despite the fact that there was nothing to debug, I set a breakpoint and stepped the program a few times; debugging commands are somewhat limited.
+For instance, you must manually enter the variables you want to watch one by one, while modern IDEs show you the value of all the variables currently in scope; however, I dare say that what's available should be more than enough for 90% of the cases.
+You can watch the value of variables while you step one instruction after another:
+
+![](/assets/2024-01-14-turbocpp/tc_003.png)
+
+You can inspect the call stack:
+
+![](/assets/2024-01-14-turbocpp/tc_004.png)
+
+You can have a look at all the breakpoints you've set:
+
+![](/assets/2024-01-14-turbocpp/tc_005.png)
+
+
+# The help system
+
+An amazing feature that I do not believe it's available in Visual Studio Code is the help system. Pressing `Ctrl+F1` brings you a contextual help window showing the usage of the keyword under the cursor. This is what I got while I was on `cout`:
+
+![](/assets/2024-01-14-turbocpp/tc_006.png)
+
+The manual is browsable without an internet connection, which was of course the standard in 1990 but it is a huge plus even today: pressing `Ctrl+F1` brings you *instantly* on the help page, and hyperlinks let you navigate easily through the extensive manuals.
+
+
+# The verdict
+
+I must confess that in the past I have often toyed with the idea of teaching a C++ class using Borland Turbo C++ for DOS. However, this is the first time I worked again on a (semi-)realistic project using Turbo C++ with the idea to test if it's feasible. On the one hand, the IDE is amazingly good: you get syntax highlighting, basic project management, a quick way to browse the list of errors produced by the compiler, seamless integration with a proper help system. On the other hand, there are quite severe limitations:
+
+1.  After working with high-resolution monitors, I find the 80×25 resolution too coarse: there is simply not enough space to browse your code confortably. (Turbo C++ supports the “43/50 mode” too, but I find its scale too weird to be really useful and had to go back to 25 lines after a few minutes.)
+
+2.  Pre-standard C++ as it was used in the 90s is probably too old to be useful today.
+
+3.  The editor is ok, but sometimes I feel it too primitive for my tastes. (In particular, I miss multi-cursors and refactoring tools!).
+
+4.  Remember that what runs behind the compiler is the old MS-DOS, with all its quirks and limitations. For instance, you are forced to limit the length of your source files to 8 characters.
+
+None of these limitations is too severe, of course, but their ensemble can be quite limiting.
+
+This toy exercise wetted my appetite for new terminal-based solutions implementing an IDE for C++.
+Terminal-mode IDEs have the advantage of not requiring very much disk space nor memory, and there are contexts where these limitations are significative.
+(Think of low-founded schools in developing countries.)
+Moreover, terminal-based programs can be easily used when developing code on remote servers using SSH, which is something I do regularly.
+I believe that it should not require too much effort to put together a number of existing libraries to re-create some IDE similar in spirit to Turbo C++ 3.0, yet with all the bells-and-whistles of modern development environments. Here is a list of interesting projects that might be used for this endeavor:
+
+-  [tvision](https://github.com/magiblot/tvision/) is a modern port of Turbo Vision (the character-based interface used to implement the IDE for Turbo C++ 3.0) which supports modern terminals and Unicode;
+
+-  [turbo](https://github.com/magiblot/turbo) is an attempt to integrate the [Scintilla editor component](https://www.scintilla.org/index.html) in tvision; Scintilla provides several high-level facilities like multiple cursors, syntax highlighting, and stuff that everybody expects in a modern IDE;
+
+-  The same author of tvision and turbo created [tvterm](https://github.com/magiblot/tvterm) to test how to integrate [libvterm](https://www.leonerd.org.uk/code/libvterm/) with tvision, and results are quite impressive. An integrated terminal is a very common tool provided by modern IDEs;
+
+-  [libclang](https://clang.llvm.org/doxygen/group__CINDEX.html) provides a C api to parse C/C++ code into an AST, which could be useful to implement refactoring tools;
+
+-  A basic debugging experience could be provided by wrapping [GDB](https://www.sourceware.org/gdb/) or [LLDB](https://lldb.llvm.org/).
