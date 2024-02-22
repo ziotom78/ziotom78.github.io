@@ -5,7 +5,7 @@ date:   2024-02-21
 categories: cv
 ---
 
-I have been part of several selection committees for PhD candidates and postdoctoral positions, and one thing that I have consistently seen with amazement is the low quality of the curriculum vitae (CVs) the candidates submitted.
+I have been part of several selection committees for postdoctoral positions and other jobs related to academia, and one thing that I have consistently seen with amazement is the low quality of the curriculum vitae (CVs) the candidates submitted.
 By “low quality”, I do not mean that they were not fit for the job.
 Rather, the applicant seriously underestimated their actual achievements; they even *forgot* to put something totally relevant for the job!
 
