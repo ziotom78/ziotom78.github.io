@@ -96,6 +96,9 @@ Here are a few tips about what you could include and what not:
     Do not think that it is not relevant because all the other students in your class did the same experiment (and maybe some of them are applying for the same position)!
     Be sure to specify what kind of instruments you learned to use (oscilloscopes, microwave amplifiers, etc.), but avoid mentioning common tools like screwdrivers and hammers!
 
+-   Is there any optional course you took that might be relevant to list in the CV?
+    For instance, if you took a course on “Advanced classical optics”, you should definitely list it if you are going to apply for a position at an astronomical observatory!
+
 -   When working on your thesis, you might have learned several skills at once.
     If this is the case, be sure to list them in distinct bullet points.
     Here are a few tips to help you:
@@ -128,12 +131,15 @@ Here are a few tips about what you could include and what not:
 
     -   If you are going to work with real hardware, explain that you had to interact with the manufacturer of to fix an issue in the thermometers connected with the bolometers.
 
+-   If you are applying for a job related to computer science, be sure to list all your most relevant software projects!
+    The best way to do this is to provide a link to a public GitHub/GitLab/whatever repository, together with a description that should be taylored for the job position.
+    (For instance, if the recruiter is looking for the maintainer of a large code base, be sure to put your largest code base in the top position and stress how much complex the code is.)
+
 -   Social skills are important to highlight. If you worked on your thesis/laboratory courses/whatever with other persons and needed to interact with them often, state this clearly.
-    Recruiters are happier if the person they are hiring is sociable and able to do team work, and they will surely prefer this kind of figure over a weird genius who does not know how to talk with other human beings.
+    Recruiters are happier if the person they are hiring is sociable and able to do team work, and they will surely prefer this kind of figure over a weird genius who does not know how to interact with other human beings.
 
 
 # Check it carefully before sending it!
 
 The worst thing in a CV is the presence of typos and grammar errors.
 Be sure to check the spelling of each word and ask somebody else to read your CV.
-
