@@ -18,7 +18,29 @@ It is particularly tailored for students working in physics, but a few principle
 First of all, be sure to check if your CV must comply with some pre-defined template.
 A common template used in Europe is the so-called [Europass CV](https://europa.eu/europass/en/create-europass-cv), and many institutions ask applicants to write their CV using this format.
 
-Once you are sure of the kind of format to use, it's time to fill the template with some actual information!
+## Read the advertisement carefully!
+
+Once you are sure of the kind of format to use, it's time to read the advertisement for the job position carefully.
+No, better rephrase this: it's time to read the advertisement for the job position **very, very, very carefully**!
+It happens quite often that I read CVs which show only a loose match with the position that was actually requested.
+Your CV must be tightly bound to the job advertisement!
+While reading the advertisement, it's better if you take notes of the kind of profile that is requested: write down a list of bullet points stating what they are precisely looking for.
+Take for instance this job advertisement (abridged):
+
+> Applications are invited for a Postdoctoral Fellow position at SOME PLACE. The successful candidate will work with Professor SOME GUY and his collaborators on observational studies of extra-solar planets and/or sub-stellar objects. Candidates with expertise and interests in ground-based high-resolution exoplanet spectroscopy and/or low-resolution spectroscopy of exoplanets and planetary-mass brown dwarfs with the James Webb Space Telescope (JWST) are particularly encouraged to apply.
+
+The bullet list might be something like the following:
+
+-   Professor SOME GUY [be sure to have a look at the papers they published]
+-   Extra-solar planets
+-   Sub-stellar objects
+-   Ground-based spectroscopy
+-   Brown dwarfs with planetary masses
+-   JWST
+
+When you have this list and have understood what each bullet point means, it's time to start writing the CV.
+
+## Be short and direct
 
 The most important thing to stress is that your CV should be **short** and **easy to read**.
 When a position is particularly enticing, the inbox of the selection committee is going to be full of CVs of potential applicants, so please do not ask the committee members to read a very long essay about your interests and achievements.
@@ -88,6 +110,7 @@ But it is important to do this every time.
 The section about one's “skills” is usually what lets me down the most in the CV of young people.
 It seems that most of the people are too humble to realize how much they can list in this section.
 There is no need to be modest; you should rather strive to be objective!
+Be sure to write your skills while keeping in mind those bullet points summarizing the job advertisement, as your skills must show that you are a good match for that position.
 
 Here are a few tips about what you could include and what not:
 
@@ -143,3 +166,6 @@ Here are a few tips about what you could include and what not:
 
 The worst thing in a CV is the presence of typos and grammar errors.
 Be sure to check the spelling of each word and ask somebody else to read your CV.
+Also, re-read one last time the bullet point summarizing the job advertisement (see above) and then read your CV: do you think they match well?
+
+Good luck!
