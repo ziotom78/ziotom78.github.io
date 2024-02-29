@@ -202,5 +202,5 @@ Moreover, it can be that a recent version of the tool/website I am using in the 
 
 I have recently started writing `xdotool` scripts that run the commands needed to perform the actions recorded in the video: in this way I can easily update the video.
 
-Surely it takes more time to prepare a video, but the result is far nices: there are no more wrong keypresses, delays due to me forgetting what to do next, etc.
+Surely it takes more time to prepare a video, but the result is far nicer: there are no more wrong keypresses, delays due to me forgetting what to do next, etc.
 And I do no need to perform video editing!

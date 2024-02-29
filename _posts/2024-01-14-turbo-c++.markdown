@@ -102,7 +102,7 @@ I must confess that in the past I have often toyed with the idea of teaching a C
 
 3.  The editor is ok, but sometimes I feel it too primitive for my tastes. (In particular, I miss multi-cursors and refactoring tools!).
 
-4.  Remember that what runs behind the compiler is the old MS-DOS, with all its quirks and limitations. For instance, you are forced to limit the length of your source files to 8 characters.
+4.  Remember that what runs behind the compiler is the old MS-DOS, with all its quirks and limitations. For instance, you are forced to limit the length of the names of source files to 8 characters.
 
 None of these limitations is too severe, of course, but their ensemble can be quite limiting.
 
