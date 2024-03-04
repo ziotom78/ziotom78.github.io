@@ -17,6 +17,7 @@ It is particularly tailored for students working in physics, but a few principle
 
 First of all, be sure to check if your CV must comply with some pre-defined template.
 A common template used in Europe is the so-called [Europass CV](https://europa.eu/europass/en/create-europass-cv), and many institutions ask applicants to write their CV using this format.
+Other institutions don't mandate a template; in this case you're free to use whatever layout you want.
 
 ## Read the advertisement carefully!
 
