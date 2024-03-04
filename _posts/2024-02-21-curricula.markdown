@@ -127,7 +127,7 @@ Here are a few tips about what you could include and what not:
     If this is the case, be sure to list them in distinct bullet points.
     Here are a few tips to help you:
 
-    1.  Have you learned some new programming language? Or have you improved your coding skills?
+    1.  Have you learned some new programming language? Or have you improved your coding skills with respect to what you learned in the CS courses?
 
     2.  Have you learned how to use some professional software like [CST Studio Suite](https://www.3ds.com/products/simulia/cst-studio-suite) or [Autodesk Inventor](https://www.autodesk.it/products/inventor)?
 
