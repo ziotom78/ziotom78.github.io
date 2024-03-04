@@ -70,7 +70,7 @@ These are the basic information that must be present in any CV:
     List the places where you studied in reverse chronological order (most recent first).
     If you are still a student, state this clearly in the very first bullet point of this section.
     Skip anything that came before high school: it's useless to list where you attended primary school or kindergarden!
-    Include your final marks, especially if they are good.
+    Include your final marks, especially if they are good, but avoid detailing the marks you've got in each exam.
 
 4.  **Skills**: this is the part where you should put most of your effort! We'll dig into this later.
 
