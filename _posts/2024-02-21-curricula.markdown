@@ -85,7 +85,7 @@ These are the basic information that must be present in any CV:
 
 Some people want to include an additional section about their personal interests, e.g., cooking, music, etc.
 I have mixed feelings about this.
-On one hand, it's nice to remember to the people reading your CV that you are a real person.
+On one hand, it's nice to remind the people reading your CV that you are a real person.
 On the other hand, this section is seldom read by the members in the selection committee, and even if it is read, it is not going to be discussed or considered when picking the best candidate.
 Probably it is best to leave it out and concentrate your effort on other parts of the CV.
 
