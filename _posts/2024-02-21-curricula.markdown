@@ -76,7 +76,7 @@ These are the basic information that must be present in any CV:
 
 5.  **Awards**: state anything remarkable that earned you a prize. It might be an award travel granted by your high school, some honorable mention for your thesis, etc. Even a *cum laude* mark for your thesis might be considered an award. If you have nothing to list here, please **don't** include an empty “Awards” section in your CV. (Yes, I've seen this!)
 
-6.  **Publications**: include your bachelor and master theses (title and date), as any paper that included your name in the list of authors.
+6.  **Publications**: include your bachelor and master theses (title and date), as well as any paper that includes your name in the list of authors.
 
 7.  **Conferences**: here you should list any conference you attended.
     If there are none, skip this section.
@@ -153,7 +153,7 @@ Here are a few tips about what you could include and what not:
 
     -   If you're going to run massively parallel computations, stress that you used a HPC cluster to run your simulations;
 
-    -   If you are going to work with real hardware, explain that you had to interact with the manufacturer of to fix an issue in the thermometers connected with the bolometers.
+    -   If you are going to work with real hardware, explain that you had to interact with the manufacturer of to fix an issue in the thermometers connected with the bolometers you were simulating.
 
 -   If you are applying for a job related to computer science, be sure to list all your most relevant software projects!
     The best way to do this is to provide a link to a public GitHub/GitLab/whatever repository, together with a description that should be taylored for the job position.
