@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="105.71119mm"
+   height="46.876068mm"
+   viewBox="0 0 105.71119 46.876068"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25, custom)"
+   sodipodi:docname="memory-layouts.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="2.0745394"
+     inkscape:cx="226.31529"
+     inkscape:cy="134.96972"
+     inkscape:window-width="1901"
+     inkscape:window-height="990"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1">
+    <marker
+       style="overflow:visible"
+       id="marker6"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path6" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Triangle"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-7.5813521,-83.554903)">
+    <rect
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583"
+       id="rect3-8"
+       width="24.032743"
+       height="7.446867"
+       x="12.050158"
+       y="116.35321" />
+    <rect
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583"
+       id="rect4-7"
+       width="24.032743"
+       height="7.4466686"
+       x="51.354549"
+       y="122.85201" />
+    <g
+       id="g6"
+       transform="translate(0,-0.5109024)">
+      <rect
+         style="fill:#e6e6e6;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583"
+         id="rect2"
+         width="48.081444"
+         height="9.5285606"
+         x="7.7136436"
+         y="84.198097" />
+      <rect
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583"
+         id="rect3"
+         width="24.032743"
+         height="7.446867"
+         x="7.7136436"
+         y="93.723106" />
+      <rect
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583"
+         id="rect4"
+         width="24.032743"
+         height="7.4466686"
+         x="31.761923"
+         y="93.723106" />
+      <text
+         xml:space="preserve"
+         style="font-size:4.9389px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';text-align:end;text-anchor:end;fill:#000000;stroke-width:0.3;stroke-linecap:square;paint-order:markers fill stroke"
+         x="21.442482"
+         y="90.408432"
+         id="text1"><tspan
+           sodipodi:role="line"
+           id="tspan1"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans Mono';-inkscape-font-specification:'Droid Sans Mono';text-align:start;text-anchor:start;fill:#000000;stroke-width:0.3"
+           x="21.442482"
+           y="90.408432">Generic</tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-size:4.9389px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';text-align:end;text-anchor:end;fill:#000000;stroke-width:0.3;stroke-linecap:square;paint-order:markers fill stroke"
+       x="22.881241"
+       y="121.8395"
+       id="text1-2"><tspan
+         sodipodi:role="line"
+         id="tspan1-3"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans Mono';-inkscape-font-specification:'Droid Sans Mono';text-align:start;text-anchor:start;fill:#000000;stroke-width:0.3"
+         x="22.881241"
+         y="121.8395">1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.9389px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';text-align:end;text-anchor:end;fill:#000000;stroke-width:0.3;stroke-linecap:square;paint-order:markers fill stroke"
+       x="61.891422"
+       y="128.36353"
+       id="text1-22"><tspan
+         sodipodi:role="line"
+         id="tspan1-8"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans Mono';-inkscape-font-specification:'Droid Sans Mono';text-align:start;text-anchor:start;fill:#000000;stroke-width:0.3"
+         x="61.891422"
+         y="128.36353">2</tspan></text>
+    <g
+       id="g7">
+      <text
+         xml:space="preserve"
+         style="font-size:4.9389px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';text-align:end;text-anchor:end;fill:#000000;stroke-width:0.3;stroke-linecap:square;paint-order:markers fill stroke"
+         x="75.909889"
+         y="98.698494"
+         id="text1-2-1"><tspan
+           sodipodi:role="line"
+           id="tspan1-3-9"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans Mono';-inkscape-font-specification:'Droid Sans Mono';text-align:start;text-anchor:start;fill:#000000;stroke-width:0.3"
+           x="75.909889"
+           y="98.698494">1</tspan></text>
+      <rect
+         style="fill:#e6e6e6;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583"
+         id="rect2-9"
+         width="48.081444"
+         height="9.5285606"
+         x="65.078804"
+         y="83.687195" />
+      <rect
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583"
+         id="rect3-3"
+         width="24.032743"
+         height="7.446867"
+         x="65.078804"
+         y="93.212204" />
+      <rect
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583"
+         id="rect4-6"
+         width="24.032743"
+         height="7.4466686"
+         x="89.127075"
+         y="93.212204" />
+      <text
+         xml:space="preserve"
+         style="font-size:4.9389px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';text-align:end;text-anchor:end;fill:#000000;stroke-width:0.3;stroke-linecap:square;paint-order:markers fill stroke"
+         x="69.913765"
+         y="89.89753"
+         id="text1-0"><tspan
+           sodipodi:role="line"
+           id="tspan1-6"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans Mono';-inkscape-font-specification:'Droid Sans Mono';text-align:start;text-anchor:start;fill:#000000;stroke-width:0.3"
+           x="69.913765"
+           y="89.89753">Parametric{T}</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:4.9389px;font-family:'DejaVu Sans';-inkscape-font-specification:'DejaVu Sans';text-align:end;text-anchor:end;fill:#000000;stroke-width:0.3;stroke-linecap:square;paint-order:markers fill stroke"
+         x="99.663948"
+         y="98.723717"
+         id="text1-22-4"><tspan
+           sodipodi:role="line"
+           id="tspan1-8-5"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Droid Sans Mono';-inkscape-font-specification:'Droid Sans Mono';text-align:start;text-anchor:start;fill:#000000;stroke-width:0.3"
+           x="99.663948"
+           y="98.723717">2</tspan></text>
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.3;stroke-linecap:square;marker-end:url(#marker6);paint-order:markers fill stroke"
+       d="m 43.101117,97.251072 c -1.611347,11.685408 15.00551,28.116138 15.00551,28.116138"
+       id="path5" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.3;stroke-linecap:square;marker-end:url(#Triangle);paint-order:markers fill stroke"
+       d="M 18.610821,97.179843 C 16.999474,108.86525 20.337208,119.3421 20.337208,119.3421"
+       id="path5-1"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>
