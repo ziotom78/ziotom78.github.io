@@ -123,7 +123,7 @@ This definition of `Point{T}` shares the same properties with the C++ implementa
 
 In the previous section, we saw that C++ class templates and Julia parametric types enable the creation of a type `Point{T}` that “decides” which type to use for some or all of its fields only at the time of instantiation.
 
-A difference between C++ class templates and Julia parametric types is that Julia creates a type hierarchy for any parametric type: once we define `Point{T}` (parametric type), we enable the definition of several concrete types like `Point{Float64}`, `Point{Int}`, `Point{String}`, etc., and each of them derive from an ancestor type `Point`:
+A difference between C++ class templates and Julia parametric types is that Julia creates a type hierarchy for any parametric type: once we define `Point{T}` (parametric type), we enable the definition of several concrete types like `Point{Float64}`, `Point{Int}`, `Point{String}`, etc., and each of them <del>derive from an ancestor type</del> are subtypes of a union type `Point`:
 
 ```julia
 julia> Point{Int} <: Point
@@ -133,7 +133,7 @@ julia> Point{Float64} <: Point
 true
 ```
 
-The advantage of having this hierarchy is that now we can write functions that apply to any type of the form `Point{T}`, regardless of the actual `T`.
+The advantage of having `Point` is that now we can write functions that apply to any type of the form `Point{T}`, regardless of the actual `T`.
 It is enough to specialize a parameter over the ancestor `Point` instead of a particular parametric type like `Point{Float64}`, like in this example:
 
 ```julia
@@ -150,6 +150,27 @@ println(f(3))
 #   Got a point: Point{Int64}(1, 2)
 #   Got something else: 3
 ```
+
+Type `Point` is an alias for `Point{T} where T`, i.e., it is an union of all the specializations of `Point`:
+
+```julia
+julia> typeof(Point)
+UnionAll
+```
+
+Therefore, the definition
+
+```julia
+f(x::Point) = "Got a point: $x"
+```
+
+is equivalent to the following:
+
+```julia
+f(x::Point{T}) where T = "Got a point: $x"
+```
+
+but it’s shorter to write and thus clearer.
 
 
 # Preventing parametric types from being too generic
@@ -353,3 +374,8 @@ false
 ```
 
 This concludes the first part of the post. In a few days I will publish the second part, where I will discuss parametric constructors.
+
+
+# Edits
+
+I reworked Section “[Hierarchies of parametric types](http://127.0.0.1:4000/julia/2024/09/30/julia-parametric-types.html#hierarchies-of-parametric-types)” after a [comment by @jules](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/2?u=maurizio_tomasi) on the [Julia Forum](https://discourse.julialang.org/).
