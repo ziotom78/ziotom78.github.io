@@ -1,6 +1,10 @@
 # Quick start
 
-To install the dependencies:
+Set up `bundle` so that it does not mess up with system packages:
+
+    export GEM_HOME=$HOME/.gem
+
+Now install the dependencies:
 
     bundle install
 
