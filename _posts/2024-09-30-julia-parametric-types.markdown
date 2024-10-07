@@ -79,8 +79,8 @@ However, both the C++ and Julia definitions are too rigid.
 For instance, both take 16 bytes (64 bits + 64 bits), but there might be situations where one prefers to use 32-bit floating points to save memory.
 (This is typical when your code deals with many points and does not strive for high accuracy.)
 We might thus want to let the user specify the width of `x` and `y` when they create a new `Point` object.
-However, we do not want to give the user too much freedom and decide that both `x` and `y' should be of the same type: both must be integers, floating-point numbers, etc.
-
+However, we do not want to give the user too much freedom and decide that both `x` and `y` should be of the same type: both must be integers, floating-point numbers, etc.
+(The reason for this is that if we need to use both `x` and `y` in a calculation like $\sqrt{x^2 + y^2}$, the CPU has to perform a conversion of `x` and `y` to a common type, which slows down the computation.)
 In C++, we can achieve this by using *class templates*:
 
 ```c++
@@ -119,11 +119,11 @@ pt2 = Point(3.0f0, 4.0f0)  # 32-bit floating points
 This definition of `Point{T}` shares the same properties with the C++ implementation of `Point<T>`: freedom to use different types and consistency between `x` and `y`.
 
 
-# Hierarchies of parametric types
+# Union of parametric types
 
 In the previous section, we saw that C++ class templates and Julia parametric types enable the creation of a type `Point{T}` that “decides” which type to use for some or all of its fields only at the time of instantiation.
 
-A difference between C++ class templates and Julia parametric types is that Julia creates a type hierarchy for any parametric type: once we define `Point{T}` (parametric type), we enable the definition of several concrete types like `Point{Float64}`, `Point{Int}`, `Point{String}`, etc., and each of them <del>derive from an ancestor type</del> are subtypes of a union type `Point`:
+A difference between C++ class templates and Julia parametric types is that Julia creates a type union for any parametric type: once we define `Point{T}` (parametric type), we enable the definition of several concrete types like `Point{Float64}`, `Point{Int}`, `Point{String}`, etc., and each of them <del>derive from an ancestor type</del> are subtypes of a union type `Point`:
 
 ```julia
 julia> Point{Int} <: Point
@@ -202,9 +202,12 @@ struct Point {
   T x, y;
 };
 
+Point pt1(1.0, 2.0);     // Ok, use `double`
+Point pt2(3.0f, 4.0f);   // Ok, use `float`
+
 // The following line does not compile:
 //
-//     Point<string> pt{"this is", "not allowed"};
+//     Point<std::string> pt{"this is", "not allowed"};
 ```
 
 In Julia, we can use the `<:` operator to constrain the supertype of `T`:
@@ -214,6 +217,9 @@ struct Point{T <: Real}
     x::T
     y::T
 end
+
+pt1 = Point(1.0, 2.0)     # Ok, use `Float64`
+pt2 = Point(3.0f0, 4.0f0) # Ok, use `Float32`
 
 # The following line would not compile:
 #
@@ -312,7 +318,7 @@ BenchmarkTools.Trial: 438 samples with 1 evaluation.
  Time  (median):     11.048 ms               ┊ GC (median):    0.00%
  Time  (mean ± σ):   11.399 ms ±   6.529 ms  ┊ GC (mean ± σ):  3.37% ±  4.62%
 
-       ▂▄▂▂ ▄▅▃▄▃▅  ▃▄▁▃▂ ▂█  ▁▁ ▂                              
+       ▂▄▂▂ ▄▅▃▄▃▅  ▃▄▁▃▂ ▂█  ▁▁ ▂
   ▃▄▃▅▅███████████▆▇████████████▇█▆▅▆▆█▅▅▄▄▄▄▄▃▃▃▃▄▃▃▃▃▁▁▁▁▃▁▃ ▅
   10.5 ms         Histogram: frequency by time         12.2 ms <
 
@@ -378,4 +384,4 @@ This concludes the first part of the post. In a few days I will publish the seco
 
 # Edits
 
-I reworked Section “[Hierarchies of parametric types](http://127.0.0.1:4000/julia/2024/09/30/julia-parametric-types.html#hierarchies-of-parametric-types)” after a [comment by @jules](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/2?u=maurizio_tomasi) on the [Julia Forum](https://discourse.julialang.org/).
+I reworked Section “[Union of parametric types](http://127.0.0.1:4000/julia/2024/09/30/julia-parametric-types.html#hierarchies-of-parametric-types)” after a [comment by @jules](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/2?u=maurizio_tomasi) on the [Julia Forum](https://discourse.julialang.org/).
