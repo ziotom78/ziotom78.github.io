@@ -9,7 +9,7 @@ katex: True
 * Do not remove this line (it will not be displayed)
 {:toc}
 
-In the [previous blog post](https://ziotom78.github.io/julia/2024/09/30/julia-parametric-types.html), I have presented parametric types in Julia.
+In the [previous blog post](/julia/2024/09/30/julia-parametric-types.html), I have presented parametric types in Julia.
 In this second part, I will explain what are the ways to initialize them properly and list a few technicalities that can sometimes cause weird behaviors.
 
 # Constructors for parametric types
@@ -201,7 +201,7 @@ This might sound obvious, but there can be cases where one might want to make th
 
 Assume, for instance, that you want to make `Particle` compatible with some code that expresses masses, velocities, and heights as complex numbers.
 (There are plenty of mathematical artifices in the literature to solve complicated physical problems analytically, often involving complex numbers used weirdly.)
-You know that you need to take the absolute values of the mass, velocity, and height to make the code compute the kinetic and potential energies correctly.
+You know that you need to take the absolute values of the mass, velocity, and height to make `Particle` compute the kinetic and potential energies correctly.
 
 We might think that specifying the base type for `Particle` as `C <: Complex` and using `abs` where appropriate should be enough.
 This will make the code behave the same as usual with real numbers and make `Particle` work with the code based on complex numbers, too.
@@ -366,48 +366,57 @@ Vec{Float32}(1.0, 2.0, 3.0)
 
 # Making Unitful-compatible types
 
-Be aware that there are cases when it is better to mark the fact that different fields in a `struct` have different types.
-Let's consider a structure holding the coordinates of a point in spherical coordinates.
+Be aware that there are cases when it is better to mark the fact that different fields in a `struct` have different types, even if they take the same amount of memory.
+Let's consider a structure holding the coordinates of a 2D point in polar coordinates.
 A naive implementation could be the following:
 
 ```julia
-struct SphPoint{T <: Number}
+struct PolPoint{T <: Number}
     r::T
     θ::T
-    φ::T
 end
 ```
 
 The intent of the programmer was surely to let the user use `Float64`, `Float32`, or even `BigFloat` to keep the three components of the coordinates.
-That's the reason why they declared `SphPoint` as a parametric type.
+That's the reason why they declared `PolPoint` as a parametric type.
 
-However, if `SphPoint` is used in a code that keeps track of measurement units through the [Unitful.jl](https://painterqubits.github.io/Unitful.jl/stable/) package, troubles will arise.
-The `r` coordinate is a length, while `θ` and `φ` are angles, and thus they cannot be of the same type `T`!
+However, if `PolPoint` is used in a code that keeps track of measurement units through the [Unitful.jl](https://painterqubits.github.io/Unitful.jl/stable/) package, troubles will arise.
+The `r` coordinate is a length, while `θ` is an angle, and thus they cannot be of the same type `T`!
 
-The correct solution is to define `SphPoint` in the following way:
+The correct solution is to define `PolPoint` in the following way:
 
 ```julia
-struct SphPoint{L <: Number, A <: Number}
+struct PolPoint{L <: Number, A <: Number}
     r::L
     θ::A
-    φ::A
+
+    # Inner constructor to perform basic checks and
+    # prevent Julia from creating a default one
+    function PolPoint{L, A}(r, θ) where {L, A}
+        r ≥ zero(r) || error("Invalid value for r = $r")
+        new{L, A}(r, θ)
+    end
 end
 
-function SphPoint(r, θ, φ)
+# Since we stopped Julia from providing a default inner
+# constructor, this outer constructor won’t be shadowed
+# by it
+function PolPoint(r, θ)
     rp = float(r)
-    θp, φp = (float(val) for val in promote(θ, φ))
+    θp = float(θ)
     L = typeof(rp)
     A = typeof(θp)
-    return SphPoint{L, A}(rp, θp, φp)
+    return PolPoint{L, A}(rp, θp)
 end
 ```
+
 where `L` marks the fact that the type encodes a length, while `A` encodes an angle.
 If the caller does not care about measurement units, they are able to use the type as usual:
 
 
 ```julia
-julia> SphPoint(3, π/2, 0)
-SphPoint{Float64, Float64}(3.0, 1.5707963267948966, 0.0)
+julia> PolPoint(3, π/2)
+PolPoint{Float64, Float64}(3.0, 1.5707963267948966)
 ```
 
 But the type is able to work well with Unitful.jl as well:
@@ -415,8 +424,11 @@ But the type is able to work well with Unitful.jl as well:
 ```julia
 julia> import Unitful: °, m
 
-julia> SphPoint(1m, 90°, 0°)
-SphPoint{Quantity{Int64, 𝐋, Unitful.FreeUnits{(m,), 𝐋, nothing}}, Quantity{Int64, NoDims, Unitful.FreeUnits{(°,), NoDims, nothing}}}(1 m, 90°, 0°)
+julia> PolPoint(1m, 90°)
+PolPoint{
+    Unitful.Quantity{Float64, 𝐋, Unitful.FreeUnits{(m,), 𝐋, nothing}},
+    Unitful.Quantity{Float64, NoDims, Unitful.FreeUnits{(°,), NoDims, nothing}}
+}(1.0 m, 90.0°)
 ```
 
 
@@ -497,3 +509,7 @@ However, in more intricate codebases, the error message `` `T` is not defined ``
 
 Thanks a lot to the people on the [Julia Forum](https://discourse.julialang.org/) for useful discussions.
 See in particular the posts in the two threads [How to use `@kwdef` with parametric types and inner constructors](https://discourse.julialang.org/t/how-to-use-kwdef-with-parametric-types-and-inner-constructors/107948) and [Constructors for parametric types](https://discourse.julialang.org/t/constructors-for-parametric-types/119971).
+
+# Edits
+
+Patrick Häcker [suggested](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/7) to use polar coordinates instead of spherical coordinates in the example in [Making Unitful-compatible types](##making-unitful-compatible-types).

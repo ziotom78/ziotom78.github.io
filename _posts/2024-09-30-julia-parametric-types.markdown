@@ -253,14 +253,17 @@ struct Parametric{T}
    y::T
 end
 
-println("Generic: ", sizeof(Generic(Int8(1), Int8(2))), " bytes")
-println("Parametric: ", sizeof(Parametric(Int8(1), Int8(2))), " bytes")
+# Tip by Patrick Häcker: use "summarysize" instead of "sizeof"
+import Base: summarysize
+
+println("Generic: ", summarysize(Generic(Int8(1), Int8(2))), " bytes")
+println("Parametric: ", summarysize(Parametric(Int8(1), Int8(2))), " bytes")
 ```
 
 The output is surprising:
 
 ```
-Generic: 16 bytes
+Generic: 18 bytes
 Parametric: 2 bytes
 ```
 
@@ -268,6 +271,8 @@ If we do *not* provide a type for `x` or `y`, Julia assumes that it is of type `
 The result is that `x` and `y` are pointers pointing to the two boxes for `Generic`, while `Parametric{T}` keeps them close together. This picture illustrates the difference:
 
 ![](/assets/2024-09-30-julia-constructors1/memory-layouts.svg){:style="display:block; margin-left:auto; margin-right:auto"}
+
+Thus, `Generic` takes 18 bytes because it needs two pointers (8 bytes each) and two plain one-byte integers.
 
 The advantage of boxes is that Julia is free to grow or shrink the space allocated for the *values* (i.e., `1` and `2` in the picture above), as this example shows:
 
@@ -363,6 +368,39 @@ println("MyType: ", sizeof(MyType(Int8(1), Int8(2))), " bytes")
 
 The reason is easy to understand: several types derive from `Real` (`Float32`, `Float64`, `BigFloat`, etc.) and have different sizes. Since Julia does not know the space needed in advance, it is forced to box both `x` and `y`.
 
+As noted by [Patrick Häcker](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/6), specifying constraints on the parametric type does not affect performance because it does not cause boxing. Really, you should do so if this better documents the purpose of a parameter. See this example:
+
+```julia
+struct Generic
+    x
+    y
+end
+
+struct Abstract
+    x::Real
+    y::Real
+end
+
+struct ParametricAbstract{T <: Real}
+    x::T
+    y::T
+end
+
+import Base: summarysize
+
+println("Generic: ", summarysize(Generic(1.0f0, 2.0f0)))
+println("Abstract: ", summarysize(Abstract(1.0f0, 2.0f0)))
+println("ParametricAbstract: ", summarysize(ParametricAbstract(1.0f0, 2.0f0)))
+
+# Output:
+#    Generic: 24
+#    Abstract: 24
+#    ParametricAbstract: 8
+```
+
+Both `Generic` and `Abstract` need boxing, but the latter is clearer because it states that both `x` and `y` must be real numbers.
+However, `ParametricAbstract{Float32}` is the best, because it takes just 8 bytes and still forces the two fields to be real numbers.
+
 Tip: you can quickly check if a type is concrete or abstract using `isconcretetype()` and `isabstracttype()`:
 
 ```julia
@@ -385,3 +423,4 @@ This concludes the first part of the post. In a few days I will publish the seco
 # Edits
 
 I reworked Section “[Union of parametric types](http://127.0.0.1:4000/julia/2024/09/30/julia-parametric-types.html#hierarchies-of-parametric-types)” after a [comment by @jules](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/2?u=maurizio_tomasi) on the [Julia Forum](https://discourse.julialang.org/).
+Patrick Häcker suggested using `summarysize` instead of `sizeof` in [this post](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/5), and he provided an example with `Abstract` and `ParametricAbstract` in [this post](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/6).
