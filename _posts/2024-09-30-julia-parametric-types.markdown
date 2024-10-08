@@ -119,11 +119,11 @@ pt2 = Point(3.0f0, 4.0f0)  # 32-bit floating points
 This definition of `Point{T}` shares the same properties with the C++ implementation of `Point<T>`: freedom to use different types and consistency between `x` and `y`.
 
 
-# Union of parametric types
+# `UnionAll` of parametric types {#union-of-parametric-types}
 
 In the previous section, we saw that C++ class templates and Julia parametric types enable the creation of a type `Point{T}` that “decides” which type to use for some or all of its fields only at the time of instantiation.
 
-A difference between C++ class templates and Julia parametric types is that Julia creates a type union for any parametric type: once we define `Point{T}` (parametric type), we enable the definition of several concrete types like `Point{Float64}`, `Point{Int}`, `Point{String}`, etc., and each of them <del>derive from an ancestor type</del> are subtypes of a union type `Point`:
+A difference between C++ class templates and Julia parametric types is that Julia creates a type union for any parametric type: once we define `Point{T}` (parametric type), we enable the definition of several concrete types like `Point{Float64}`, `Point{Int}`, `Point{String}`, etc., and each of them <del>derive from an ancestor type</del> are subtypes of a `UnionAll` type:
 
 ```julia
 julia> Point{Int} <: Point
@@ -171,6 +171,8 @@ f(x::Point{T}) where T = "Got a point: $x"
 ```
 
 but it’s shorter to write and thus clearer.
+
+You can read more about `UnionAll` in [the Julia documentation](https://docs.julialang.org/en/v1/devdocs/types/#UnionAll-types).
 
 
 # Preventing parametric types from being too generic
@@ -240,7 +242,7 @@ That we cannot think of any of them does not mean that there aren’t at all!
 
 There is no general rule here.
 However, there is an essential fact that you should keep in mind when facing this kind of doubt.
-Parametric types can be **highly** efficient when the type `T` is *concrete* (i.e., not abstract). Have a look at this:
+Parametric types can be **highly** efficient when the type `T` is *concrete*, i.e., it can be used to store actual values in memory because it has a well defined layout and size. Have a look at this:
 
 ```julia
 struct Generic
@@ -352,7 +354,7 @@ The compiler probably needs memory for some intermediate result related to the c
 All this work is unnecessary with a list of `Parametric` objects, as the width of `x` and `y` is known when Julia compiles the function.
 
 We have learned that parametric types are valuable when we need our code to be performant.
-Note that boxing happens not only when you avoid specifying a type but also when you refer to an abstract type.
+Note that boxing happens not only when you avoid specifying a type but also when you specify a <del>abstract</del> type with an unspecified memory layout and size.
 Thus, the following definition is no better than `Generic`, even if we specify that `x` and `y` should be real numbers:
 
 ```julia
@@ -377,7 +379,7 @@ struct Generic
 end
 
 struct Abstract
-    x::Real
+    x::Real   # `Real` is an abstract type
     y::Real
 end
 
@@ -401,20 +403,14 @@ println("ParametricAbstract: ", summarysize(ParametricAbstract(1.0f0, 2.0f0)))
 Both `Generic` and `Abstract` need boxing, but the latter is clearer because it states that both `x` and `y` must be real numbers.
 However, `ParametricAbstract{Float32}` is the best, because it takes just 8 bytes and still forces the two fields to be real numbers.
 
-Tip: you can quickly check if a type is concrete or abstract using `isconcretetype()` and `isabstracttype()`:
+Tip: you can quickly check if a type is concrete using `isconcretetype()`:
 
 ```julia
 julia> isconcretetype(Real)
 false
 
-julia> isabstracttype(Real)
-true
-
 julia> isconcretetype(Int8)
 true
-
-julia> isabstracttype(Int8)
-false
 ```
 
 This concludes the first part of the post. In a few days I will publish the second part, where I will discuss parametric constructors.
@@ -422,5 +418,5 @@ This concludes the first part of the post. In a few days I will publish the seco
 
 # Edits
 
-I reworked Section “[Union of parametric types](http://127.0.0.1:4000/julia/2024/09/30/julia-parametric-types.html#hierarchies-of-parametric-types)” after a [comment by @jules](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/2?u=maurizio_tomasi) on the [Julia Forum](https://discourse.julialang.org/).
-Patrick Häcker suggested using `summarysize` instead of `sizeof` in [this post](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/5), and he provided an example with `Abstract` and `ParametricAbstract` in [this post](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/6).
+I reworked Section “[Union of parametric types](/julia/2024/09/30/julia-parametric-types.html#union-of-parametric-types)” after a [comment by @jules](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/2?u=maurizio_tomasi) on the [Julia Forum](https://discourse.julialang.org/).
+Patrick Häcker suggested using `summarysize` instead of `sizeof` in [this post](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/5), and he provided an example with `Abstract` and `ParametricAbstract` in [this post](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/6). I removed any reference to `isabstracttype` after [this comment](https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/11?u=maurizio_tomasi) by Neven Sajko.
