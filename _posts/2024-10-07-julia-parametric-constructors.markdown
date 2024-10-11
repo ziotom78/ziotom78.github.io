@@ -277,6 +277,8 @@ There are several possible solutions:
     end
     ```
 
+Now that we have presented how parametric constructors work, let’s share a few tips.
+
 # Smart use of `promote`
 
 Suppose you need to define a type to represent a 3D vector.
@@ -377,7 +379,7 @@ struct PolPoint{T <: Number}
 end
 ```
 
-The intent of the programmer was surely to let the user use `Float64`, `Float32`, or even `BigFloat` to keep the three components of the coordinates.
+The intent of the programmer was surely to let the user use `Float64`, `Float32`, or even `BigFloat` to store the two components of the coordinates.
 That's the reason why they declared `PolPoint` as a parametric type.
 
 However, if `PolPoint` is used in a code that keeps track of measurement units through the [Unitful.jl](https://painterqubits.github.io/Unitful.jl/stable/) package, troubles will arise.
