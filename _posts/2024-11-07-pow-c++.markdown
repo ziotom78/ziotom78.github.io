@@ -1,0 +1,181 @@
+---
+layout: post
+title:  "Implementing x² in C++"
+date:   2024-11-07
+categories: c++
+katex: True
+---
+
+Many equations require to compute the square of some quantity `x`.
+Unfortunately, C++ does not provide an operator for exponentiation like Julia or Fortran.
+One can rely on two solutions:
+
+1.  Just multiply the value by itself: `x * x`;
+2.  Use the `std::pow()` function, defined in `<cmath>`.
+
+The first solution has the advantage of requiring no separate `#import`, but the second one is better if the value you are going to square is not stored in a variable:
+
+```c++
+double result1{(a + b) * (a + b)};  // Ugly to read & write
+double result2{std::pow(a + b, 2)}; // Much better
+```
+
+However, are the two solutions *really* the same? Are `x * x` and `std::pow(x, 2)` equivalent, or is there some difference in the results?
+
+Let’s write some code to benchmark the two approaches.
+We compute the sum of the squares of all the integer numbers between 1 and 10 millions with both methods to determine which implementation is the fastest.
+Here are the two implementations:
+
+```c++
+double pow_test(int N)  {
+  double sum{};
+  for (double i{}; i < N; i += 1.0) {
+    sum += pow(i, 2.0);
+  }
+  return sum;
+}
+
+double times_test(int N) {
+  double sum{};
+  for (double i{}; i < N; i += 1.0) {
+    sum += i * i;
+  }
+  return sum;
+}
+```
+
+A good method when profiling code is to run every benchmark a few times and to take the *minimum* value among the elapsed time measurements.
+So let’s write a function that does this and uses `<chrono>` to measure the time:
+
+```c++
+void run_benchmark(const char *name, int N, auto fn) {
+  array<std::chrono::duration<double>, 5> samples;
+  double sum{};
+
+  for (int k{}; k < ssize(samples); ++k) {
+    const auto start = std::chrono::steady_clock::now();
+    sum = fn(N);
+    const auto end = std::chrono::steady_clock::now();
+    samples[k] = end - start;
+  }
+  auto result{std::ranges::min_element(samples)};
+  cout << format("{}: {} s (result is {})\n", name, *result, sum);
+}
+```
+
+The full source code of the program is the following:
+
+```c++
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <cmath>
+#include <format>
+#include <iostream>
+
+using namespace std;
+
+double pow_test(int N) {
+  double sum{};
+  for (double i{}; i < N; i += 1.0) {
+    sum += pow(i, 2.0);
+  }
+  return sum;
+}
+
+double times_test(int N) {
+  double sum{};
+  for (double i{}; i < N; i += 1.0) {
+    sum += i * i;
+  }
+  return sum;
+}
+
+void run_benchmark(const char *name, int N, auto fn) {
+  array<std::chrono::duration<double>, 5> samples;
+  double sum{};
+
+  for (int k{}; k < ssize(samples); ++k) {
+    const auto start = std::chrono::steady_clock::now();
+    sum = fn(N);
+    const auto end = std::chrono::steady_clock::now();
+    samples[k] = end - start;
+  }
+  auto result{std::ranges::min_element(samples)};
+  cout << format("{}: {} s (result is {})\n", name, *result, sum);
+}
+
+int main() {
+  const int N{10'000'000};
+
+  run_benchmark("pow", N, pow_test);
+  run_benchmark("x * x", N, times_test);
+}
+```
+
+(The code uses `<format>` and `std::ranges::min_element`, so be sure to use the `-std=c++23` flag and a reasonably recent C++ compiler; mine is GCC 14.2.1.)
+
+The results on my laptop are the following:
+
+```
+pow: 0.184192s s (result is 333333283333717098496)
+x * x: 0.0386399s s (result is 333333283333717098496)
+```
+
+Wow! So `x * x` is nearly five times faster than `pow`! What’s happened?
+
+Using GCC 14.2, the line `sum += pow(i, 2.0)` produces the following machine code:
+
+```assembler
+movsd   xmm0, QWORD PTR .LC7[rip]
+mov     rax, QWORD PTR [rbp-16]
+movapd  xmm1, xmm0
+movq    xmm0, rax
+call    pow
+movsd   xmm1, QWORD PTR [rbp-8]
+addsd   xmm0, xmm1
+movsd   QWORD PTR [rbp-8], xmm0
+```
+
+So, as expected, the machine code loads the parameters to `pow` into registers and then calls the `pow` function.
+And calling a function is expensive!
+
+The line `sum += x * x` produces this:
+
+```assembler
+movsd   xmm0, QWORD PTR [rbp-16]
+mulsd   xmm0, xmm0
+movsd   xmm1, QWORD PTR [rbp-8]
+addsd   xmm0, xmm1
+movsd   QWORD PTR [rbp-8], xmm0
+```
+
+which has no `call` instruction: it is just the plain implementation of the operation `x * x`, using [`mulsd`](https://www.felixcloutier.com/x86/mulsd).
+
+The take-away message is: when computing the square of a number in C++ you should always use `x * x`.
+
+But what about the ugly line we saw above:
+
+```c++
+double result1{(a + b) * (a + b)};
+```
+
+We can improve the code via a template function:
+
+```c++
+template<typename T>
+T square(T x) {
+    return x * x;
+}
+```
+
+Adding this case to the benchmark above produces the following results:
+
+```
+pow: 0.176948s s (result is 333333283333717098496)
+x * x: 0.0394336s s (result is 333333283333717098496)
+square: 0.0399737s s (result is 333333283333717098496)
+```
+
+which shows no significant loss of performance when using a `template`.
+If you do not want to use templates because you are sure you will always use `double` values, you can define `inline double square(double x)`, and the benchmark result will be the same.
