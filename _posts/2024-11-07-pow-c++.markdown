@@ -169,7 +169,13 @@ T square(T x) {
 }
 ```
 
-Adding this case to the benchmark above produces the following results:
+so that the line becomes
+
+```c++
+double result1{square(a + b)};
+```
+
+Adding a corresponding case to the benchmark above produces the following results:
 
 ```
 pow: 0.176948s s (result is 333333283333717098496)
