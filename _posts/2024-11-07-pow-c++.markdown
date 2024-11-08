@@ -20,7 +20,7 @@ double result1{(a + b) * (a + b)};  // Ugly to read & write
 double result2{std::pow(a + b, 2)}; // Much better
 ```
 
-However, are the two solutions *really* the same? Are `x * x` and `std::pow(x, 2)` equivalent, or is there some difference in the results?
+However, are the two solutions *really* the same? Are `x * x` and `std::pow(x, 2)` equivalent, or is there some difference?
 
 Let’s write some code to benchmark the two approaches.
 We compute the sum of the squares of all the integer numbers between 1 and 10 millions with both methods to determine which implementation is the fastest.
