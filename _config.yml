@@ -30,6 +30,11 @@ show_excerpts: true
 
 # Build settings
 theme: minima
+
+# Silence warnings about the “minima” theme
+sass:
+  quiet_deps: true
+
 plugins:
   - jekyll-feed
 
