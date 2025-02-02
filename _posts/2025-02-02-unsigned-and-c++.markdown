@@ -6,7 +6,7 @@ categories: c++
 katex: True
 ---
 
-Often students learning how to use C++ vectors write codes like this:
+When learning to use vectors in C++, it is common for students to encounter certain issues and warnings while writing their code. One such issue is the warning that appears when using a signed integer to loop through a vector, like the following example shows:
 
 ```c++
 #include <iostream>
@@ -23,7 +23,7 @@ int main() {
 }
 ```
 
-Inevitably, the warning produced by the compiler always puzzles them:
+When compiling the code using the `-Wall` flag, the compiler generates the following warning:
 
 ```
 $ g++ -o -g3 -Wall --pedantic test test.cpp
@@ -36,11 +36,9 @@ test.cpp:9:18: warning: comparison of integer expressions of different signednes
 collect2: error: ld returned 1 exit status
 ```
 
-(Note: you do not get this warning unless you specify `-Wall`; but you should *always* use `-Wall`!)
+The warning is generated because `std::vector::size()` returns an *unsigned* integer, while the loop variable `i` is a *signed* integer. (This is exactly what the compiler prints, but it seems that students do not like to carefully read compiler’s messages!) When explaining this error, I always mention that `size()` should actually have been declared as `int` by the C++ standard.
 
-My standard explanation is that the warning is motivated by the fact that `std::vector::size()` returns an unsigned integer, while the `i` variable is signed. (This is exactly what the compiler prints, but it seems that students do not like to carefully read compiler’s messages!)
-
-One of them wasn’t entirely satisfied by my explanation that `size()` should actually have been declared as `int` by the C++ standard, and he wrote me this email:
+One of my students thought more about this and sent me this email:
 
 > …at first glance it doesn't seem entirely unreasonable to use an index variable without a sign for array and vector dimensions. A vector of dimension -5 doesn't make sense, so it would seem reasonable to remove ambiguity on the sign. I think the problem actually concerns managing vectors and arrays, because using an unsigned value, even when doing a loop for example, requires casting.
 
