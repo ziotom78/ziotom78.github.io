@@ -50,8 +50,7 @@ Unless you are the President of the US, your CV should not be ten pages long!
 
 For the sake of readability, choose a clear font like Arial or Times New Roman and avoid fonts like [Comic Sans](https://en.wikipedia.org/wiki/Comic_Sans) like the plague: your CV is supposed to look professional!
 
-It's a good tip to add a photo to your CV: in this way, the selection committee will easily recognize your face and associate it with your CV when they see you at the face-to-face colloquium. They might even remember you if you both attended the same conference or if you were one of their former students.
-
+Adding a photo to your CV can help the selection committee recognize you during an in-person interview or recall meeting you at a conference or in a previous course. However, in countries like the US, the UK, and Canada, including a photo is considered bad practice as it may introduce unconscious bias based on appearance. Some may also find it inappropriate, interpreting it as an assumption from your side that one’s own looks can influence the selection of a candidate.
 
 # How to structure your CV
 
