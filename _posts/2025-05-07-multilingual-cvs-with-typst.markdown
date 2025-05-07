@@ -56,9 +56,9 @@ But if you remove the comment from the line with `\def\useitalian{1}`, you will 
 ![](/assets/2025-05-07-multilingual-cvs-with-typst/latex-title-it.png)
 
 
-# What is Typst?
-
 With the new setup, things worked pretty well. However, the presence of `\ifx\useitalian\undefined` in the LaTeX source was a bit heavy to read, and the text did not flow as pleasantly as I would have liked.
+
+# Typst
 
 Several months ago, I heard of [Typst](https://typst.app/), a new typesetting language that aims to provide a better way to produce PDF documents. At the time, I was intrigued enough to have a look at the documentation, but what I found was not sufficient to make the switch from LaTeX:
 
