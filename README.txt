@@ -19,6 +19,9 @@ Simply create a new text file with the extension `.markdown` in the `_posts` dir
 
 Be sure to keep one sentence per line.
 
+Once you are ready to deploy the site, run
+
+    just deploy
 
 ## How to use LaTeX in posts
 
