@@ -1,16 +1,15 @@
-# Set shell to bash for better compatibility
 set shell := ["bash", "-cu"]
 
-# Recipe to build the Jekyll site
+# Build the Jekyll site
 build:
     bundle exec jekyll build
 
-# Deploy the contents of _site/ to the gh-pages branch
+# Deploy the site using git worktree
 deploy:
     just build
-    # Ensure working directory is clean
+    # Check for uncommitted changes
     git diff --quiet || (echo "❌ You have uncommitted changes. Commit them before deploying." && exit 1)
-    TMP_DIR=$(mktemp -d)
+    export TMP_DIR := $(mktemp -d)
     cp -r _site/* "$TMP_DIR"
     cp -r _site/. "$TMP_DIR" 2>/dev/null || true # Include dotfiles if any
     git fetch origin gh-pages || true
