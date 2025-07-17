@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>A tutorial about parametric constructors in Julia (1/2) | Maurizio’s blog</title>
+<meta name="generator" content="Jekyll v4.3.4" />
+<meta property="og:title" content="A tutorial about parametric constructors in Julia (1/2)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="My personal blog, where I write about stuff related to my work and my hobbies." />
+<meta property="og:description" content="My personal blog, where I write about stuff related to my work and my hobbies." />
+<link rel="canonical" href="/julia/2024/09/30/julia-parametric-types.html" />
+<meta property="og:url" content="/julia/2024/09/30/julia-parametric-types.html" />
+<meta property="og:site_name" content="Maurizio’s blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2024-09-30T00:00:00+02:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="A tutorial about parametric constructors in Julia (1/2)" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-09-30T00:00:00+02:00","datePublished":"2024-09-30T00:00:00+02:00","description":"My personal blog, where I write about stuff related to my work and my hobbies.","headline":"A tutorial about parametric constructors in Julia (1/2)","mainEntityOfPage":{"@type":"WebPage","@id":"/julia/2024/09/30/julia-parametric-types.html"},"url":"/julia/2024/09/30/julia-parametric-types.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Maurizio&apos;s blog" />
+
+<!-- CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css" />
+
+<!-- JavaScript -->
+<script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{
+    delimiters: [
+      { left: '$$',  right: '$$',  display: true  },
+      { left: '$',   right: '$',   display: false },
+      { left: '\\[', right: '\\]', display: true  },
+      { left: '\\(', right: '\\)', display: false }
+  ]});">
+  </script>
+
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Maurizio&#39;s blog</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">A tutorial about parametric constructors in Julia (1/2)</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2024-09-30T00:00:00+02:00" itemprop="datePublished">Sep 30, 2024
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul id="markdown-toc">
+  <li><a href="#a-short-introduction-to-parametric-types" id="markdown-toc-a-short-introduction-to-parametric-types">A short introduction to parametric types</a></li>
+  <li><a href="#union-of-parametric-types" id="markdown-toc-union-of-parametric-types"><code class="language-plaintext highlighter-rouge">UnionAll</code> of parametric types</a></li>
+  <li><a href="#preventing-parametric-types-from-being-too-generic" id="markdown-toc-preventing-parametric-types-from-being-too-generic">Preventing parametric types from being too generic</a></li>
+  <li><a href="#is-it-always-worth-to-restrict-the-types" id="markdown-toc-is-it-always-worth-to-restrict-the-types">Is it always worth to restrict the types?</a></li>
+  <li><a href="#edits" id="markdown-toc-edits">Edits</a></li>
+</ul>
+
+<p>Julia enables the definition of <em>parametric types</em>, similar to class templates in C++.
+They let the user define a “template” for a <code class="language-plaintext highlighter-rouge">struct</code> where the types are only defined in general terms, and the user will “fill” the definitions once they create an actual object.
+To build a <code class="language-plaintext highlighter-rouge">struct</code>, one can implement <em>constructors</em>, which are special functions whose name is the same as the <code class="language-plaintext highlighter-rouge">struct</code> (again, similar to C++) and whose purpose is to set up the object so that its state is consistent.</p>
+
+<p>Constructors for parametric types can be complex.
+Still, it is crucial to understand how they work, as they make the code more robust (you can spot conceptual errors earlier) and more performant (the code runs faster).</p>
+
+<p>I wrote this long blog post to put together some facts that I have discovered about this topic.
+I often find myself re-reading the chapters in the Julia Manual about <a href="https://docs.julialang.org/en/v1/manual/types/">types</a> and <a href="https://docs.julialang.org/en/v1/manual/methods/">methods</a>, trying to figure out why the way I defined a constructor is not working or doing what I was expecting.
+I will stick to facts as much as possible, providing as many practical examples as needed, but please remember that I am not an expert in this field, and some of my explanations may be incorrect.
+Send me an email if you think something is wrong or missing.</p>
+
+<p>Because of the length of the text, I am going to split this post in two:</p>
+
+<ol>
+  <li>
+    <p>In the first part (this one), I will describe what parametric types are;</p>
+  </li>
+  <li>
+    <p>In the second part, we will see how to define constructors for parametric types.</p>
+  </li>
+</ol>
+
+<h1 id="a-short-introduction-to-parametric-types">A short introduction to parametric types</h1>
+
+<p>Julia permits the definition of composite types using the keyword <code class="language-plaintext highlighter-rouge">struct</code>, as in the following example:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> Point</span>
+  <span class="n">x</span>
+  <span class="n">y</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>This defines a type <code class="language-plaintext highlighter-rouge">Point</code> that contains two fields: <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code>.
+Thus, <code class="language-plaintext highlighter-rouge">Point</code> can represent a 2D point on the Cartesian plane.
+If one wants to define the same in C++, one could come out with the following definition:</p>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">Point</span> <span class="p">{</span>
+    <span class="kt">double</span> <span class="n">x</span><span class="p">;</span>
+    <span class="kt">double</span> <span class="n">y</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>A notable difference between Julia and C++ is that the latter forced us to declare a type (<code class="language-plaintext highlighter-rouge">double</code>) for <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code>, while Julia was happy without it. The definition of <code class="language-plaintext highlighter-rouge">Point</code> in Julia lets both fields to be of any type, even strings:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Point</span><span class="x">(</span><span class="mi">1</span><span class="x">,</span> <span class="mi">2</span><span class="x">)</span>
+<span class="n">Point</span><span class="x">(</span><span class="mi">1</span><span class="x">,</span> <span class="mi">2</span><span class="x">)</span>
+
+<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Point</span><span class="x">(</span><span class="mf">3.2</span><span class="x">,</span> <span class="mf">5.1</span><span class="x">)</span>
+<span class="n">Point</span><span class="x">(</span><span class="mf">3.2</span><span class="x">,</span> <span class="mf">5.1</span><span class="x">)</span>
+
+<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Point</span><span class="x">(</span><span class="s">"hello"</span><span class="x">,</span> <span class="s">"world"</span><span class="x">)</span>
+<span class="n">Point</span><span class="x">(</span><span class="s">"hello"</span><span class="x">,</span> <span class="s">"world"</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>Letting a <code class="language-plaintext highlighter-rouge">Point</code> components be strings is a bit silly! Inspired by the definition of <code class="language-plaintext highlighter-rouge">Point</code> in C++, we might decide to restrict ourselves to only floating-point numbers:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> Point</span>
+  <span class="n">x</span><span class="o">::</span><span class="kt">Float64</span>
+  <span class="n">y</span><span class="o">::</span><span class="kt">Float64</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Much better!
+This structure is now conceptually identical to the one in C++.</p>
+
+<p>However, both the C++ and Julia definitions are too rigid.
+For instance, both take 16 bytes (64 bits + 64 bits), but there might be situations where one prefers to use 32-bit floating points to save memory.
+(This is typical when your code deals with many points and does not strive for high accuracy.)
+We might thus want to let the user specify the width of <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> when they create a new <code class="language-plaintext highlighter-rouge">Point</code> object.
+However, we do not want to give the user too much freedom and decide that both <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> should be of the same type: both must be integers, floating-point numbers, etc.
+(The reason for this is that if we need to use both <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> in a calculation like $\sqrt{x^2 + y^2}$, the CPU has to perform a conversion of <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> to a common type, which slows down the computation.)
+In C++, we can achieve this by using <em>class templates</em>:</p>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">Point</span> <span class="p">{</span>
+  <span class="n">Point</span><span class="p">(</span><span class="n">T</span> <span class="n">ax</span><span class="p">,</span> <span class="n">T</span> <span class="n">ay</span><span class="p">)</span> <span class="o">:</span> <span class="n">x</span><span class="p">{</span><span class="n">ax</span><span class="p">},</span> <span class="n">y</span><span class="p">{</span><span class="n">ay</span><span class="p">}</span> <span class="p">{}</span>
+
+  <span class="c1">// `x` and `y` must be of the same type `T`!</span>
+  <span class="n">T</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="n">Point</span> <span class="n">pt1</span><span class="p">{</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">};</span>    <span class="c1">// 64-bit floating points</span>
+<span class="n">Point</span> <span class="n">pt2</span><span class="p">{</span><span class="mf">3.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">4.0</span><span class="n">f</span><span class="p">};</span>  <span class="c1">// 32-bit floating points</span>
+
+<span class="c1">// This does not compile:</span>
+<span class="c1">//   Point pt3{5.0, 6.0f};  // Error, we're mixing 64-bit and 32-bit types!</span>
+</code></pre></div></div>
+
+<p>This implementation satisfies both requirements: (1) when creating a new <code class="language-plaintext highlighter-rouge">Point</code> object, we can specify the width of the type, and (2) regardless of the choice for <code class="language-plaintext highlighter-rouge">T</code>, <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> must be of the same type.</p>
+
+<p>Julia implements <em>parametric types</em>, which are similar to templates in C++; our structure becomes the following:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> Point</span><span class="x">{</span><span class="n">T</span><span class="x">}</span>
+    <span class="n">x</span><span class="o">::</span><span class="n">T</span>
+    <span class="n">y</span><span class="o">::</span><span class="n">T</span>
+<span class="k">end</span>
+
+<span class="n">pt1</span> <span class="o">=</span> <span class="n">Point</span><span class="x">(</span><span class="mf">1.0</span><span class="x">,</span> <span class="mf">2.0</span><span class="x">)</span>      <span class="c"># 64-bit floating points</span>
+<span class="n">pt2</span> <span class="o">=</span> <span class="n">Point</span><span class="x">(</span><span class="mf">3.0f0</span><span class="x">,</span> <span class="mf">4.0f0</span><span class="x">)</span>  <span class="c"># 32-bit floating points</span>
+
+<span class="c"># This does not compile:</span>
+<span class="c">#   pt3 = Point(5.0, 6.0f0)</span>
+</code></pre></div></div>
+
+<p>This definition of <code class="language-plaintext highlighter-rouge">Point{T}</code> shares the same properties with the C++ implementation of <code class="language-plaintext highlighter-rouge">Point&lt;T&gt;</code>: freedom to use different types and consistency between <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code>.</p>
+
+<h1 id="union-of-parametric-types"><code class="language-plaintext highlighter-rouge">UnionAll</code> of parametric types</h1>
+
+<p>In the previous section, we saw that C++ class templates and Julia parametric types enable the creation of a type <code class="language-plaintext highlighter-rouge">Point{T}</code> that “decides” which type to use for some or all of its fields only at the time of instantiation.</p>
+
+<p>A difference between C++ class templates and Julia parametric types is that Julia creates a type union for any parametric type: once we define <code class="language-plaintext highlighter-rouge">Point{T}</code> (parametric type), we enable the definition of several concrete types like <code class="language-plaintext highlighter-rouge">Point{Float64}</code>, <code class="language-plaintext highlighter-rouge">Point{Int}</code>, <code class="language-plaintext highlighter-rouge">Point{String}</code>, etc., and each of them <del>derive from an ancestor type</del> are subtypes of a <code class="language-plaintext highlighter-rouge">UnionAll</code> type:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Point</span><span class="x">{</span><span class="kt">Int</span><span class="x">}</span> <span class="o">&lt;:</span> <span class="n">Point</span>
+<span class="nb">true</span>
+
+<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Point</span><span class="x">{</span><span class="kt">Float64</span><span class="x">}</span> <span class="o">&lt;:</span> <span class="n">Point</span>
+<span class="nb">true</span>
+</code></pre></div></div>
+
+<p>The advantage of having <code class="language-plaintext highlighter-rouge">Point</code> is that now we can write functions that apply to any type of the form <code class="language-plaintext highlighter-rouge">Point{T}</code>, regardless of the actual <code class="language-plaintext highlighter-rouge">T</code>.
+It is enough to specialize a parameter over the ancestor <code class="language-plaintext highlighter-rouge">Point</code> instead of a particular parametric type like <code class="language-plaintext highlighter-rouge">Point{Float64}</code>, like in this example:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">f</span><span class="x">(</span><span class="n">x</span><span class="o">::</span><span class="n">Point</span><span class="x">{</span><span class="kt">Float64</span><span class="x">})</span> <span class="o">=</span> <span class="s">"Got a point with 64-bit coordinates: </span><span class="si">$</span><span class="s">x"</span>
+<span class="n">f</span><span class="x">(</span><span class="n">x</span><span class="o">::</span><span class="n">Point</span><span class="x">)</span> <span class="o">=</span> <span class="s">"Got a point: </span><span class="si">$</span><span class="s">x"</span>
+<span class="n">f</span><span class="x">(</span><span class="n">x</span><span class="x">)</span> <span class="o">=</span> <span class="s">"Got something else: </span><span class="si">$</span><span class="s">x"</span>
+
+<span class="n">println</span><span class="x">(</span><span class="n">f</span><span class="x">(</span><span class="n">Point</span><span class="x">(</span><span class="mf">1.0</span><span class="x">,</span> <span class="mf">2.0</span><span class="x">)))</span>
+<span class="n">println</span><span class="x">(</span><span class="n">f</span><span class="x">(</span><span class="n">Point</span><span class="x">(</span><span class="mi">1</span><span class="x">,</span> <span class="mi">2</span><span class="x">)))</span>
+<span class="n">println</span><span class="x">(</span><span class="n">f</span><span class="x">(</span><span class="mi">3</span><span class="x">))</span>
+
+<span class="c"># Output:</span>
+<span class="c">#   Got a point with 64-bit coordinates: Point{Float64}(1.0, 2.0)</span>
+<span class="c">#   Got a point: Point{Int64}(1, 2)</span>
+<span class="c">#   Got something else: 3</span>
+</code></pre></div></div>
+
+<p>Type <code class="language-plaintext highlighter-rouge">Point</code> is an alias for <code class="language-plaintext highlighter-rouge">Point{T} where T</code>, i.e., it is an union of all the specializations of <code class="language-plaintext highlighter-rouge">Point</code>:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">typeof</span><span class="x">(</span><span class="n">Point</span><span class="x">)</span>
+<span class="kt">UnionAll</span>
+</code></pre></div></div>
+
+<p>Therefore, the definition</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">f</span><span class="x">(</span><span class="n">x</span><span class="o">::</span><span class="n">Point</span><span class="x">)</span> <span class="o">=</span> <span class="s">"Got a point: </span><span class="si">$</span><span class="s">x"</span>
+</code></pre></div></div>
+
+<p>is equivalent to the following:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">f</span><span class="x">(</span><span class="n">x</span><span class="o">::</span><span class="n">Point</span><span class="x">{</span><span class="n">T</span><span class="x">})</span> <span class="k">where</span> <span class="n">T</span> <span class="o">=</span> <span class="s">"Got a point: </span><span class="si">$</span><span class="s">x"</span>
+</code></pre></div></div>
+
+<p>but it’s shorter to write and thus clearer.</p>
+
+<p>You can read more about <code class="language-plaintext highlighter-rouge">UnionAll</code> in <a href="https://docs.julialang.org/en/v1/devdocs/types/#UnionAll-types">the Julia documentation</a>.</p>
+
+<h1 id="preventing-parametric-types-from-being-too-generic">Preventing parametric types from being too generic</h1>
+
+<p>When we first defined <code class="language-plaintext highlighter-rouge">Point</code> with no type specification for <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code>, we noticed it was too naive because it allowed the user to store strings into <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code>.</p>
+
+<p>This problem remains in the parametric type <code class="language-plaintext highlighter-rouge">Point{T}</code> (and in the C++ class template <code class="language-plaintext highlighter-rouge">Point&lt;T&gt;</code> too):</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> Point</span><span class="x">{</span><span class="n">T</span><span class="x">}</span>
+    <span class="n">x</span><span class="o">::</span><span class="n">T</span>
+    <span class="n">y</span><span class="o">::</span><span class="n">T</span>
+<span class="k">end</span>
+
+<span class="c"># Oh gosh, this doesn't look good at all!</span>
+<span class="n">pt_wrong</span> <span class="o">=</span> <span class="n">Point</span><span class="x">(</span><span class="s">"this should"</span><span class="x">,</span> <span class="s">"not be allowed"</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>In C++, one could resort to <a href="https://en.wikipedia.org/wiki/Concepts_(C%2B%2B)">concepts</a> (introduced in C++20) to constrain the type of the template parameter <code class="language-plaintext highlighter-rouge">T</code> to floating-point values:</p>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;concepts&gt;</span><span class="cp">
+</span>
+<span class="c1">// Note `std::floating_point` instead of `typename` here!</span>
+<span class="k">template</span> <span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">floating_point</span> <span class="n">T</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">Point</span> <span class="p">{</span>
+  <span class="n">Point</span><span class="p">(</span><span class="n">T</span> <span class="n">ax</span><span class="p">,</span> <span class="n">T</span> <span class="n">ay</span><span class="p">)</span> <span class="o">:</span> <span class="n">x</span><span class="p">{</span><span class="n">ax</span><span class="p">},</span> <span class="n">y</span><span class="p">{</span><span class="n">ay</span><span class="p">}</span> <span class="p">{}</span>
+  <span class="n">T</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="n">Point</span> <span class="nf">pt1</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">);</span>     <span class="c1">// Ok, use `double`</span>
+<span class="n">Point</span> <span class="nf">pt2</span><span class="p">(</span><span class="mf">3.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">4.0</span><span class="n">f</span><span class="p">);</span>   <span class="c1">// Ok, use `float`</span>
+
+<span class="c1">// The following line does not compile:</span>
+<span class="c1">//</span>
+<span class="c1">//     Point&lt;std::string&gt; pt{"this is", "not allowed"};</span>
+</code></pre></div></div>
+
+<p>In Julia, we can use the <code class="language-plaintext highlighter-rouge">&lt;:</code> operator to constrain the supertype of <code class="language-plaintext highlighter-rouge">T</code>:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> Point</span><span class="x">{</span><span class="n">T</span> <span class="o">&lt;:</span> <span class="kt">Real</span><span class="x">}</span>
+    <span class="n">x</span><span class="o">::</span><span class="n">T</span>
+    <span class="n">y</span><span class="o">::</span><span class="n">T</span>
+<span class="k">end</span>
+
+<span class="n">pt1</span> <span class="o">=</span> <span class="n">Point</span><span class="x">(</span><span class="mf">1.0</span><span class="x">,</span> <span class="mf">2.0</span><span class="x">)</span>     <span class="c"># Ok, use `Float64`</span>
+<span class="n">pt2</span> <span class="o">=</span> <span class="n">Point</span><span class="x">(</span><span class="mf">3.0f0</span><span class="x">,</span> <span class="mf">4.0f0</span><span class="x">)</span> <span class="c"># Ok, use `Float32`</span>
+
+<span class="c"># The following line would not compile:</span>
+<span class="c">#</span>
+<span class="c">#     pt3 = Point("this is", "not allowed")</span>
+</code></pre></div></div>
+
+<p>We can constrain types as a tool to document the purpose of the fields in the struct.
+In this case, we are telling whoever wants to instantiate a <code class="language-plaintext highlighter-rouge">Point</code> that the purpose of the fields <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> is to store something that is conceptually a “number” and not a string.
+Thus, <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> measure something quantitatively and are presumably supposed to be used in mathematical formulae.
+Without them, anybody glancing at the code might think that one could assign a string, a file, or a socket to them! (I’m exaggerating for clarity’s sake 😀.)</p>
+
+<h1 id="is-it-always-worth-to-restrict-the-types">Is it always worth to restrict the types?</h1>
+
+<p>Is restricting the types invariably worth it?
+After all, there might be some ingenious uses in a <code class="language-plaintext highlighter-rouge">Point</code> type where we <em>do</em> want to store strings in the <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> components.
+That we cannot think of any of them does not mean that there aren’t at all!</p>
+
+<p>There is no general rule here.
+However, there is an essential fact that you should keep in mind when facing this kind of doubt.
+Parametric types can be <strong>highly</strong> efficient when the type <code class="language-plaintext highlighter-rouge">T</code> is <em>concrete</em>, i.e., it can be used to store actual values in memory because it has a well defined layout and size. Have a look at this:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> Generic</span>
+   <span class="n">x</span>
+   <span class="n">y</span>
+<span class="k">end</span>
+
+<span class="k">struct</span><span class="nc"> Parametric</span><span class="x">{</span><span class="n">T</span><span class="x">}</span>
+   <span class="n">x</span><span class="o">::</span><span class="n">T</span>
+   <span class="n">y</span><span class="o">::</span><span class="n">T</span>
+<span class="k">end</span>
+
+<span class="c"># Tip by Patrick Häcker: use "summarysize" instead of "sizeof"</span>
+<span class="k">import</span> <span class="n">Base</span><span class="o">:</span> <span class="n">summarysize</span>
+
+<span class="n">println</span><span class="x">(</span><span class="s">"Generic: "</span><span class="x">,</span> <span class="n">summarysize</span><span class="x">(</span><span class="n">Generic</span><span class="x">(</span><span class="kt">Int8</span><span class="x">(</span><span class="mi">1</span><span class="x">),</span> <span class="kt">Int8</span><span class="x">(</span><span class="mi">2</span><span class="x">))),</span> <span class="s">" bytes"</span><span class="x">)</span>
+<span class="n">println</span><span class="x">(</span><span class="s">"Parametric: "</span><span class="x">,</span> <span class="n">summarysize</span><span class="x">(</span><span class="n">Parametric</span><span class="x">(</span><span class="kt">Int8</span><span class="x">(</span><span class="mi">1</span><span class="x">),</span> <span class="kt">Int8</span><span class="x">(</span><span class="mi">2</span><span class="x">))),</span> <span class="s">" bytes"</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>The output is surprising:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Generic: 18 bytes
+Parametric: 2 bytes
+</code></pre></div></div>
+
+<p>If we do <em>not</em> provide a type for <code class="language-plaintext highlighter-rouge">x</code> or <code class="language-plaintext highlighter-rouge">y</code>, Julia assumes that it is of type <code class="language-plaintext highlighter-rouge">Any</code> and thus it “boxes” it into a container.
+The result is that <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> are pointers pointing to the two boxes for <code class="language-plaintext highlighter-rouge">Generic</code>, while <code class="language-plaintext highlighter-rouge">Parametric{T}</code> keeps them close together. This picture illustrates the difference:</p>
+
+<p><img src="/assets/2024-09-30-julia-constructors1/memory-layouts.svg" alt="" style="display:block; margin-left:auto; margin-right:auto" /></p>
+
+<p>Thus, <code class="language-plaintext highlighter-rouge">Generic</code> takes 18 bytes because it needs two pointers (8 bytes each) and two plain one-byte integers.</p>
+
+<p>The advantage of boxes is that Julia is free to grow or shrink the space allocated for the <em>values</em> (i.e., <code class="language-plaintext highlighter-rouge">1</code> and <code class="language-plaintext highlighter-rouge">2</code> in the picture above), as this example shows:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># We want a mutable type because we're going to</span>
+<span class="c"># change `x`</span>
+<span class="k">mutable struct</span><span class="nc"> MyType</span>
+   <span class="n">x</span>
+   <span class="n">y</span>
+<span class="k">end</span>
+
+<span class="c"># We initialize the type with two 8-bit integers</span>
+<span class="n">pt</span> <span class="o">=</span> <span class="n">MyType</span><span class="x">(</span><span class="kt">Int8</span><span class="x">(</span><span class="mi">1</span><span class="x">),</span> <span class="kt">Int8</span><span class="x">(</span><span class="mi">2</span><span class="x">))</span>
+
+<span class="c"># We now ask to use a 64-bit integer instead of the</span>
+<span class="c"># original 8-bit type, and Julia does not complain.</span>
+<span class="n">pt</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="kt">Int64</span><span class="x">(</span><span class="mi">1</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>Julia fulfills our request to replace an 8-bit value with a 64-bit integer because <code class="language-plaintext highlighter-rouge">x</code> does <em>not</em> contain the value itself but rather a pointer to the “box” containing the 8-bit value.
+When we reassign it to the 64-bit value <code class="language-plaintext highlighter-rouge">Int64(1)</code>, Julia throws away the old box, creates a large enough new one, and reassigns the pointer <code class="language-plaintext highlighter-rouge">x</code> to point to this new box.</p>
+
+<p>One might wonder if boxing affects performance, too.
+Let’s check this: we will compute the sum of all the distances of a list of points from the center in the case of two lists, one using <code class="language-plaintext highlighter-rouge">Generic</code> and the other using <code class="language-plaintext highlighter-rouge">Parametric</code>.
+Here is the benchmark code:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span><span class="nf"> f</span><span class="x">(</span><span class="n">list</span><span class="x">)</span>
+    <span class="n">cumsum</span> <span class="o">=</span> <span class="n">zero</span><span class="x">(</span><span class="n">typeof</span><span class="x">(</span><span class="n">list</span><span class="x">[</span><span class="k">begin</span><span class="x">]</span><span class="o">.</span><span class="n">x</span><span class="x">))</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="k">in</span> <span class="n">list</span>
+        <span class="n">cumsum</span> <span class="o">+=</span> <span class="n">sqrt</span><span class="x">(</span><span class="n">l</span><span class="o">.</span><span class="n">x</span><span class="o">^</span><span class="mi">2</span> <span class="o">+</span> <span class="n">l</span><span class="o">.</span><span class="n">y</span><span class="o">^</span><span class="mi">2</span><span class="x">)</span>
+    <span class="k">end</span>
+
+    <span class="k">return</span> <span class="n">cumsum</span>
+<span class="k">end</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">100_000</span>
+<span class="n">generic_list</span> <span class="o">=</span> <span class="x">[</span><span class="n">Generic</span><span class="x">(</span><span class="n">rand</span><span class="x">(</span><span class="kt">Float64</span><span class="x">),</span> <span class="n">rand</span><span class="x">(</span><span class="kt">Float64</span><span class="x">))</span> <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span><span class="o">:</span><span class="n">N</span><span class="x">]</span>
+<span class="n">parametric_list</span> <span class="o">=</span> <span class="x">[</span><span class="n">Parametric</span><span class="x">(</span><span class="n">rand</span><span class="x">(</span><span class="kt">Float64</span><span class="x">),</span> <span class="n">rand</span><span class="x">(</span><span class="kt">Float64</span><span class="x">))</span> <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span><span class="o">:</span><span class="n">N</span><span class="x">]</span>
+</code></pre></div></div>
+
+<p>And here are the results:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>julia&gt; @benchmark f(generic_list)
+BenchmarkTools.Trial: 438 samples with 1 evaluation.
+ Range (min … max):  10.457 ms … 147.525 ms  ┊ GC (min … max): 0.00% … 92.25%
+ Time  (median):     11.048 ms               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   11.399 ms ±   6.529 ms  ┊ GC (mean ± σ):  3.37% ±  4.62%
+
+       ▂▄▂▂ ▄▅▃▄▃▅  ▃▄▁▃▂ ▂█  ▁▁ ▂
+  ▃▄▃▅▅███████████▆▇████████████▇█▆▅▆▆█▅▅▄▄▄▄▄▃▃▃▃▄▃▃▃▃▁▁▁▁▃▁▃ ▅
+  10.5 ms         Histogram: frequency by time         12.2 ms &lt;
+
+ Memory estimate: 7.63 MiB, allocs estimate: 500000.
+
+julia&gt; @benchmark f(parametric_list)
+BenchmarkTools.Trial: 10000 samples with 1 evaluation.
+ Range (min … max):  438.580 μs … 669.432 μs  ┊ GC (min … max): 0.00% … 0.00%
+ Time  (median):     439.923 μs               ┊ GC (median):    0.00%
+ Time  (mean ± σ):   458.728 μs ±  30.981 μs  ┊ GC (mean ± σ):  0.00% ± 0.00%
+
+  █  ▁▃▅  ▄▃▂▁▂▂▂▂▂▂▃▁▁ ▁▁ ▁▁                                   ▁
+  ██▄███████████████████████████▇██▇▇▇▇▇▇▇▆▆▆▅▆▆▅▅▅▅▆▄▄▃▅▆▆▃▆▄▅ █
+  439 μs        Histogram: log(frequency) by time        586 μs &lt;
+
+ Memory estimate: 16 bytes, allocs estimate: 1.
+</code></pre></div></div>
+
+<p>On my laptop, the version with <code class="language-plaintext highlighter-rouge">Parametric</code> is roughly 20 times faster and allocates far less memory.
+The fact that the <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> components in <code class="language-plaintext highlighter-rouge">generic_list</code> are scattered across the memory does not help the CPU cache optimize subsequent memory fetches in the <code class="language-plaintext highlighter-rouge">for</code> loop, partly explaining the poorer performance.
+But what about the many allocations?
+A call to <code class="language-plaintext highlighter-rouge">@code_warntype f(generic_list)</code> reveals that the culprit is probably the line where <code class="language-plaintext highlighter-rouge">cumsum</code> is incremented.
+Julia cannot know the actual type of <code class="language-plaintext highlighter-rouge">l.x</code> and <code class="language-plaintext highlighter-rouge">l.y</code> in the function call <code class="language-plaintext highlighter-rouge">sqrt(l.x^2 + l.y^2)</code>, so it has to retrieve the value of <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code>, check for their type, and be sure that the result fits into <code class="language-plaintext highlighter-rouge">cumsum</code>, which is of type <code class="language-plaintext highlighter-rouge">Float64</code>.
+I am not 100% sure why Julia needs to allocate some memory here.
+The compiler probably needs memory for some intermediate result related to the calculation involving <code class="language-plaintext highlighter-rouge">l.x</code> and <code class="language-plaintext highlighter-rouge">l.y</code>.
+All this work is unnecessary with a list of <code class="language-plaintext highlighter-rouge">Parametric</code> objects, as the width of <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> is known when Julia compiles the function.</p>
+
+<p>We have learned that parametric types are valuable when we need our code to be performant.
+Note that boxing happens not only when you avoid specifying a type but also when you specify a <del>abstract</del> type with an unspecified memory layout and size.
+Thus, the following definition is no better than <code class="language-plaintext highlighter-rouge">Generic</code>, even if we specify that <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> should be real numbers:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> MyType</span>
+   <span class="n">x</span><span class="o">::</span><span class="kt">Real</span>  <span class="c"># Specifying ::Real makes the typing more precise, yet</span>
+   <span class="n">y</span><span class="o">::</span><span class="kt">Real</span>  <span class="c"># boxing is still needed</span>
+<span class="k">end</span>
+
+<span class="n">println</span><span class="x">(</span><span class="s">"MyType: "</span><span class="x">,</span> <span class="n">sizeof</span><span class="x">(</span><span class="n">MyType</span><span class="x">(</span><span class="kt">Int8</span><span class="x">(</span><span class="mi">1</span><span class="x">),</span> <span class="kt">Int8</span><span class="x">(</span><span class="mi">2</span><span class="x">))),</span> <span class="s">" bytes"</span><span class="x">)</span>
+<span class="c"># Output:</span>
+<span class="c">#   MyType: 16 bytes</span>
+</code></pre></div></div>
+
+<p>The reason is easy to understand: several types derive from <code class="language-plaintext highlighter-rouge">Real</code> (<code class="language-plaintext highlighter-rouge">Float32</code>, <code class="language-plaintext highlighter-rouge">Float64</code>, <code class="language-plaintext highlighter-rouge">BigFloat</code>, etc.) and have different sizes. Since Julia does not know the space needed in advance, it is forced to box both <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code>.</p>
+
+<p>As noted by <a href="https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/6">Patrick Häcker</a>, specifying constraints on the parametric type does not affect performance because it does not cause boxing. Really, you should do so if this better documents the purpose of a parameter. See this example:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> Generic</span>
+    <span class="n">x</span>
+    <span class="n">y</span>
+<span class="k">end</span>
+
+<span class="k">struct</span><span class="nc"> Abstract</span>
+    <span class="n">x</span><span class="o">::</span><span class="kt">Real</span>   <span class="c"># `Real` is an abstract type</span>
+    <span class="n">y</span><span class="o">::</span><span class="kt">Real</span>
+<span class="k">end</span>
+
+<span class="k">struct</span><span class="nc"> ParametricAbstract</span><span class="x">{</span><span class="n">T</span> <span class="o">&lt;:</span> <span class="kt">Real</span><span class="x">}</span>
+    <span class="n">x</span><span class="o">::</span><span class="n">T</span>
+    <span class="n">y</span><span class="o">::</span><span class="n">T</span>
+<span class="k">end</span>
+
+<span class="k">import</span> <span class="n">Base</span><span class="o">:</span> <span class="n">summarysize</span>
+
+<span class="n">println</span><span class="x">(</span><span class="s">"Generic: "</span><span class="x">,</span> <span class="n">summarysize</span><span class="x">(</span><span class="n">Generic</span><span class="x">(</span><span class="mf">1.0f0</span><span class="x">,</span> <span class="mf">2.0f0</span><span class="x">)))</span>
+<span class="n">println</span><span class="x">(</span><span class="s">"Abstract: "</span><span class="x">,</span> <span class="n">summarysize</span><span class="x">(</span><span class="n">Abstract</span><span class="x">(</span><span class="mf">1.0f0</span><span class="x">,</span> <span class="mf">2.0f0</span><span class="x">)))</span>
+<span class="n">println</span><span class="x">(</span><span class="s">"ParametricAbstract: "</span><span class="x">,</span> <span class="n">summarysize</span><span class="x">(</span><span class="n">ParametricAbstract</span><span class="x">(</span><span class="mf">1.0f0</span><span class="x">,</span> <span class="mf">2.0f0</span><span class="x">)))</span>
+
+<span class="c"># Output:</span>
+<span class="c">#    Generic: 24</span>
+<span class="c">#    Abstract: 24</span>
+<span class="c">#    ParametricAbstract: 8</span>
+</code></pre></div></div>
+
+<p>Both <code class="language-plaintext highlighter-rouge">Generic</code> and <code class="language-plaintext highlighter-rouge">Abstract</code> need boxing, but the latter is clearer because it states that both <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> must be real numbers.
+However, <code class="language-plaintext highlighter-rouge">ParametricAbstract{Float32}</code> is the best, because it takes just 8 bytes and still forces the two fields to be real numbers.</p>
+
+<p>Tip: you can quickly check if a type is concrete using <code class="language-plaintext highlighter-rouge">isconcretetype()</code>:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">isconcretetype</span><span class="x">(</span><span class="kt">Real</span><span class="x">)</span>
+<span class="nb">false</span>
+
+<span class="n">julia</span><span class="o">&gt;</span> <span class="n">isconcretetype</span><span class="x">(</span><span class="kt">Int8</span><span class="x">)</span>
+<span class="nb">true</span>
+</code></pre></div></div>
+
+<p>This concludes the first part of the post. In a few days I will publish the second part, where I will discuss parametric constructors.</p>
+
+<h1 id="edits">Edits</h1>
+
+<p>I reworked Section “<a href="/julia/2024/09/30/julia-parametric-types.html#union-of-parametric-types">Union of parametric types</a>” after a <a href="https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/2?u=maurizio_tomasi">comment by @jules</a> on the <a href="https://discourse.julialang.org/">Julia Forum</a>.
+Patrick Häcker suggested using <code class="language-plaintext highlighter-rouge">summarysize</code> instead of <code class="language-plaintext highlighter-rouge">sizeof</code> in <a href="https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/5">this post</a>, and he provided an example with <code class="language-plaintext highlighter-rouge">Abstract</code> and <code class="language-plaintext highlighter-rouge">ParametricAbstract</code> in <a href="https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/6">this post</a>. I removed any reference to <code class="language-plaintext highlighter-rouge">isabstracttype</code> after <a href="https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/11?u=maurizio_tomasi">this comment</a> by Neven Sajko.</p>
+
+  </div><a class="u-url" href="/julia/2024/09/30/julia-parametric-types.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <script src="https://utteranc.es/client.js"
+          repo="ziotom78/ziotom78.github.io"
+          issue-term="title"
+          theme="github-light"
+          crossorigin="anonymous"
+          async>
+  </script>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Maurizio&#39;s blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Maurizio&#39;s blog</li><li><a class="u-email" href="mailto:ziotom78@gmail.com">ziotom78@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/ziotom78"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">ziotom78</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>My personal blog, where I write about stuff related to my work and my hobbies.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

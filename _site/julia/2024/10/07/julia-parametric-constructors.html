@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>A tutorial about parametric constructors in Julia (2/2) | Maurizio’s blog</title>
+<meta name="generator" content="Jekyll v4.3.4" />
+<meta property="og:title" content="A tutorial about parametric constructors in Julia (2/2)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="My personal blog, where I write about stuff related to my work and my hobbies." />
+<meta property="og:description" content="My personal blog, where I write about stuff related to my work and my hobbies." />
+<link rel="canonical" href="/julia/2024/10/07/julia-parametric-constructors.html" />
+<meta property="og:url" content="/julia/2024/10/07/julia-parametric-constructors.html" />
+<meta property="og:site_name" content="Maurizio’s blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2024-10-07T00:00:00+02:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="A tutorial about parametric constructors in Julia (2/2)" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2024-10-07T00:00:00+02:00","datePublished":"2024-10-07T00:00:00+02:00","description":"My personal blog, where I write about stuff related to my work and my hobbies.","headline":"A tutorial about parametric constructors in Julia (2/2)","mainEntityOfPage":{"@type":"WebPage","@id":"/julia/2024/10/07/julia-parametric-constructors.html"},"url":"/julia/2024/10/07/julia-parametric-constructors.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Maurizio&apos;s blog" />
+
+<!-- CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css" />
+
+<!-- JavaScript -->
+<script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{
+    delimiters: [
+      { left: '$$',  right: '$$',  display: true  },
+      { left: '$',   right: '$',   display: false },
+      { left: '\\[', right: '\\]', display: true  },
+      { left: '\\(', right: '\\)', display: false }
+  ]});">
+  </script>
+
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Maurizio&#39;s blog</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">A tutorial about parametric constructors in Julia (2/2)</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2024-10-07T00:00:00+02:00" itemprop="datePublished">Oct 7, 2024
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul id="markdown-toc">
+  <li><a href="#constructors-for-parametric-types" id="markdown-toc-constructors-for-parametric-types">Constructors for parametric types</a></li>
+  <li><a href="#correspondence-between-parametric-types-in-the-struct-and-in-the-constructor" id="markdown-toc-correspondence-between-parametric-types-in-the-struct-and-in-the-constructor">Correspondence between parametric types in the <code class="language-plaintext highlighter-rouge">struct</code> and in the constructor</a></li>
+  <li><a href="#smart-use-of-promote" id="markdown-toc-smart-use-of-promote">Smart use of <code class="language-plaintext highlighter-rouge">promote</code></a></li>
+  <li><a href="#making-unitful-compatible-types" id="markdown-toc-making-unitful-compatible-types">Making Unitful-compatible types</a></li>
+  <li><a href="#use-of-kwdef" id="markdown-toc-use-of-kwdef">Use of <code class="language-plaintext highlighter-rouge">@kwdef</code></a></li>
+  <li><a href="#acknowledgements" id="markdown-toc-acknowledgements">Acknowledgements</a></li>
+  <li><a href="#edits" id="markdown-toc-edits">Edits</a></li>
+</ul>
+
+<p>In the <a href="/julia/2024/09/30/julia-parametric-types.html">previous blog post</a>, I have presented parametric types in Julia.
+In this second part, I will explain what are the ways to initialize them properly and list a few technicalities that can sometimes cause weird behaviors.</p>
+
+<h1 id="constructors-for-parametric-types">Constructors for parametric types</h1>
+
+<p>In all the examples in the previous blog post, you might have noticed that we did not have to specify the type <code class="language-plaintext highlighter-rouge">T</code> when instantiating a <code class="language-plaintext highlighter-rouge">Point</code> type, neither in C++ nor Julia:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> Point</span><span class="x">{</span><span class="n">T</span><span class="x">}</span>
+    <span class="n">x</span><span class="o">::</span><span class="n">T</span>
+    <span class="n">y</span><span class="o">::</span><span class="n">T</span>
+<span class="k">end</span>
+
+<span class="c"># We do not write `Point{Float64}(1.0, 2.0) here:</span>
+<span class="c"># Julia correctly infers that the type is `Point{Float64}`</span>
+<span class="n">pt1</span> <span class="o">=</span> <span class="n">Point</span><span class="x">(</span><span class="mf">1.0</span><span class="x">,</span> <span class="mf">2.0</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>This is similar to C++, which got <a href="https://en.cppreference.com/w/cpp/language/class_template_argument_deduction">Class Template Argument Deduction (CTAD)</a> in C++17:</p>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
+</span>
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span>
+<span class="k">struct</span> <span class="nc">Point</span> <span class="p">{</span>
+  <span class="n">Point</span><span class="p">(</span><span class="n">T</span> <span class="n">ax</span><span class="p">,</span> <span class="n">T</span> <span class="n">ay</span><span class="p">)</span> <span class="o">:</span> <span class="n">x</span><span class="p">{</span><span class="n">ax</span><span class="p">},</span> <span class="n">y</span><span class="p">{</span><span class="n">ay</span><span class="p">}</span> <span class="p">{}</span>
+
+  <span class="n">T</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">// Since C++17, there is no need to write `Point&lt;double&gt;` here,</span>
+  <span class="c1">// as the compiler is smart enough to deduce it</span>
+  <span class="n">Point</span> <span class="n">pt</span><span class="p">{</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">};</span>
+
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">pt</span><span class="p">.</span><span class="n">x</span> <span class="o">&lt;&lt;</span> <span class="s">", "</span> <span class="o">&lt;&lt;</span> <span class="n">pt</span><span class="p">.</span><span class="n">y</span> <span class="o">&lt;&lt;</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>It is important to stress that it is the responsibility of Julia’s <em>inner constructors</em> to deduce the parametric type.
+Julia permits the programmer to override the default inner constructors provided by the language, but if we do so, Julia loses the ability to perform the deduction.
+The point is that overriding inner constructors is very common, as it is the preferred method for performing additional safety checks on our type.
+Thus, if we override an inner constructor, we must know how to “recover” parameter deduction in our implementation.</p>
+
+<p>To better explain this issue, let’s consider some type less boring than <code class="language-plaintext highlighter-rouge">Point</code>.
+We will implement a new type <code class="language-plaintext highlighter-rouge">Vehicle</code> that holds information about the mass and the number of wheels of a generic vehicle.
+Here is a possible implementation:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> Vehicle</span><span class="x">{</span><span class="n">M</span> <span class="o">&lt;:</span> <span class="kt">Real</span><span class="x">,</span> <span class="n">N</span> <span class="o">&lt;:</span> <span class="kt">Integer</span><span class="x">}</span>
+    <span class="n">mass</span><span class="o">::</span><span class="n">M</span>
+    <span class="n">num_of_wheels</span><span class="o">::</span><span class="n">N</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>I used a parametric type so that we do not incur in the overhead associated with generic <code class="language-plaintext highlighter-rouge">Any</code> types.
+(See the previous blog post.)
+Moreover, I enforced the fact that <code class="language-plaintext highlighter-rouge">M</code> must be a floating-point type (<code class="language-plaintext highlighter-rouge">Real</code>), while <code class="language-plaintext highlighter-rouge">N</code> must be an integer by declaring two types in the parameters of the type.
+The type works as expected:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Vehicle</span><span class="x">(</span><span class="mf">100.0</span><span class="x">,</span> <span class="mi">4</span><span class="x">)</span>
+<span class="n">Vehicle</span><span class="x">{</span><span class="kt">Float64</span><span class="x">,</span> <span class="kt">Int64</span><span class="x">}(</span><span class="mf">100.0</span><span class="x">,</span> <span class="mi">4</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>However, this definition could be more robust, as it does not check that the mass and the number of wheels are valid.
+Both should be nonzero positive numbers!
+Inner constructors come to the rescue here.
+You define a function with the same name as the type and place this definition <em>within</em> the <code class="language-plaintext highlighter-rouge">struct</code> itself.
+Within the function, you call <code class="language-plaintext highlighter-rouge">new</code> when ready to build the new object.
+The point is that your definition of the inner constructor will <em>replace Julia’s default one</em>.
+In our case, we can re-implement <code class="language-plaintext highlighter-rouge">Vehicle</code> as follows:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> Vehicle</span><span class="x">{</span><span class="n">M</span> <span class="o">&lt;:</span> <span class="kt">Real</span><span class="x">,</span> <span class="n">N</span> <span class="o">&lt;:</span> <span class="kt">Integer</span><span class="x">}</span>
+    <span class="n">mass</span><span class="o">::</span><span class="n">M</span>
+    <span class="n">num_of_wheels</span><span class="o">::</span><span class="n">N</span>
+
+    <span class="k">function</span><span class="nf"> Vehicle</span><span class="x">{</span><span class="n">M</span><span class="x">,</span> <span class="n">N</span><span class="x">}(</span><span class="n">m</span><span class="x">,</span> <span class="n">n</span><span class="x">)</span> <span class="k">where</span> <span class="x">{</span><span class="n">M</span><span class="x">,</span> <span class="n">N</span><span class="x">}</span>
+        <span class="x">(</span><span class="n">m</span> <span class="o">&gt;</span> <span class="n">zero</span><span class="x">(</span><span class="n">m</span><span class="x">))</span> <span class="o">||</span> <span class="n">error</span><span class="x">(</span><span class="s">"Invalid negative mass </span><span class="si">$</span><span class="s">m"</span><span class="x">)</span>
+        <span class="x">(</span><span class="n">n</span> <span class="o">&gt;</span> <span class="n">zero</span><span class="x">(</span><span class="n">n</span><span class="x">))</span> <span class="o">||</span> <span class="n">error</span><span class="x">(</span><span class="s">"Invalid number of wheels </span><span class="si">$</span><span class="s">n"</span><span class="x">)</span>
+
+        <span class="c"># Note that we do *not* call `new(…)`, but</span>
+        <span class="c"># `new{M, N}(…)`: there is no `new()` function within the</span>
+        <span class="c"># inner constructor of a parametric type, because you are</span>
+        <span class="c"># expected to pass the proper types!</span>
+        <span class="k">return</span> <span class="n">new</span><span class="x">{</span><span class="n">M</span><span class="x">,</span> <span class="n">N</span><span class="x">}(</span><span class="n">m</span><span class="x">,</span> <span class="n">n</span><span class="x">)</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>However, if we try to use this new type as we did before, we get a surprising result:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Vehicle</span><span class="x">(</span><span class="mf">100.0</span><span class="x">,</span> <span class="mi">4</span><span class="x">)</span>
+<span class="n">ERROR</span><span class="o">:</span> <span class="kt">MethodError</span><span class="o">:</span> <span class="n">no</span> <span class="n">method</span> <span class="n">matching</span> <span class="n">Vehicle</span><span class="x">(</span><span class="o">::</span><span class="kt">Float64</span><span class="x">,</span> <span class="o">::</span><span class="kt">Int64</span><span class="x">)</span>
+<span class="n">Stacktrace</span><span class="o">:</span>
+ <span class="x">[</span><span class="mi">1</span><span class="x">]</span> <span class="n">top</span><span class="o">-</span><span class="n">level</span> <span class="n">scope</span>
+   <span class="err">@</span> <span class="n">REPL</span><span class="x">[</span><span class="mi">10</span><span class="x">]</span><span class="o">:</span><span class="mi">2</span>
+</code></pre></div></div>
+
+<p>The problem is that our inner constructor does not conform to the form <code class="language-plaintext highlighter-rouge">Vehicle(…)</code> but <code class="language-plaintext highlighter-rouge">Vehicle{M, N}</code>.
+The fact that <code class="language-plaintext highlighter-rouge">Vehicle</code> is a <em>parametric</em> type means that <code class="language-plaintext highlighter-rouge">M</code> and <code class="language-plaintext highlighter-rouge">N</code> should be considered as actual <em>parameters</em>, and you already know that whenever you call a function, you must provide all the parameters!
+Thus, we must explicitly provide <code class="language-plaintext highlighter-rouge">M</code> and <code class="language-plaintext highlighter-rouge">N</code>:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Vehicle</span><span class="x">{</span><span class="kt">Float64</span><span class="x">,</span> <span class="kt">Int64</span><span class="x">}(</span><span class="mf">100.0</span><span class="x">,</span> <span class="mi">4</span><span class="x">)</span>
+<span class="n">Vehicle</span><span class="x">{</span><span class="kt">Float64</span><span class="x">,</span> <span class="kt">Int64</span><span class="x">}(</span><span class="mf">100.0</span><span class="x">,</span> <span class="mi">4</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>Spelling out the types is boring, but it is easy to implement a constructor that is smart enough to deduce the types by itself:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> Vehicle</span><span class="x">{</span><span class="n">M</span> <span class="o">&lt;:</span> <span class="kt">Real</span><span class="x">,</span> <span class="n">N</span> <span class="o">&lt;:</span> <span class="kt">Integer</span><span class="x">}</span>
+    <span class="n">mass</span><span class="o">::</span><span class="n">M</span>
+    <span class="n">num_of_wheels</span><span class="o">::</span><span class="n">N</span>
+
+    <span class="c"># Here we no longer have `{M, N}`</span>
+    <span class="k">function</span><span class="nf"> Vehicle</span><span class="x">(</span><span class="n">m</span><span class="x">,</span> <span class="n">n</span><span class="x">)</span>
+        <span class="x">(</span><span class="n">m</span> <span class="o">&gt;</span> <span class="n">zero</span><span class="x">(</span><span class="n">m</span><span class="x">))</span> <span class="o">||</span> <span class="n">error</span><span class="x">(</span><span class="s">"Invalid negative mass </span><span class="si">$</span><span class="s">m"</span><span class="x">)</span>
+        <span class="x">(</span><span class="n">n</span> <span class="o">&gt;</span> <span class="n">zero</span><span class="x">(</span><span class="n">n</span><span class="x">))</span> <span class="o">||</span> <span class="n">error</span><span class="x">(</span><span class="s">"Invalid number of wheels </span><span class="si">$</span><span class="s">n"</span><span class="x">)</span>
+
+        <span class="c"># Retrieve the types `M` and `N`, and pass them to `new{…}`</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">typeof</span><span class="x">(</span><span class="n">m</span><span class="x">)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">typeof</span><span class="x">(</span><span class="n">n</span><span class="x">)</span>
+        <span class="k">return</span> <span class="n">new</span><span class="x">{</span><span class="n">M</span><span class="x">,</span> <span class="n">N</span><span class="x">}(</span><span class="n">m</span><span class="x">,</span> <span class="n">n</span><span class="x">)</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>With this constructor, everything works as expected again:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Vehicle</span><span class="x">(</span><span class="mf">100.0</span><span class="x">,</span> <span class="mi">4</span><span class="x">)</span>
+<span class="n">Vehicle</span><span class="x">{</span><span class="kt">Float64</span><span class="x">,</span> <span class="kt">Int64</span><span class="x">}(</span><span class="mf">100.0</span><span class="x">,</span> <span class="mi">4</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>You might fear that this new constructor might not prevent whoever is going to create a new <code class="language-plaintext highlighter-rouge">Vehicle</code> object from doing something silly.
+Shouldn’t we add something like <code class="language-plaintext highlighter-rouge">(N &lt;: Integer) || error("N is of the wrong type")</code> in the constructor, to be sure that the user does not use a floating-point number for the number of wheels?</p>
+
+<p>Fortunately, there is no need to do so:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Vehicle</span><span class="x">(</span><span class="mi">100</span><span class="x">,</span> <span class="mf">4.1</span><span class="x">)</span>
+<span class="n">ERROR</span><span class="o">:</span> <span class="kt">TypeError</span><span class="o">:</span> <span class="k">in</span> <span class="n">Vehicle</span><span class="x">,</span> <span class="k">in</span> <span class="n">N</span><span class="x">,</span> <span class="n">expected</span> <span class="n">N</span><span class="o">&lt;:</span><span class="kt">Integer</span><span class="x">,</span> <span class="n">got</span> <span class="kt">Type</span><span class="x">{</span><span class="kt">Float64</span><span class="x">}</span>
+<span class="n">Stacktrace</span><span class="o">:</span>
+ <span class="x">[</span><span class="mi">1</span><span class="x">]</span> <span class="n">Vehicle</span><span class="x">(</span><span class="n">m</span><span class="o">::</span><span class="kt">Int64</span><span class="x">,</span> <span class="n">n</span><span class="o">::</span><span class="kt">Float64</span><span class="x">)</span>
+   <span class="err">@</span> <span class="n">Main</span> <span class="o">./</span><span class="n">REPL</span><span class="x">[</span><span class="mi">1</span><span class="x">]</span><span class="o">:</span><span class="mi">12</span>
+ <span class="x">[</span><span class="mi">2</span><span class="x">]</span> <span class="n">top</span><span class="o">-</span><span class="n">level</span> <span class="n">scope</span>
+   <span class="err">@</span> <span class="n">REPL</span><span class="x">[</span><span class="mi">3</span><span class="x">]</span><span class="o">:</span><span class="mi">1</span>
+</code></pre></div></div>
+
+<p>The line <code class="language-plaintext highlighter-rouge">./REPL[1]:12</code> indicates that the error was originated in the statement <code class="language-plaintext highlighter-rouge">new{M, N}(m, n)</code>: <code class="language-plaintext highlighter-rouge">new</code> checked the consistency of the types for us, and our implementation of the constructor is solid.</p>
+
+<h1 id="correspondence-between-parametric-types-in-the-struct-and-in-the-constructor">Correspondence between parametric types in the <code class="language-plaintext highlighter-rouge">struct</code> and in the constructor</h1>
+
+<p>We saw above that we can reproduce the behavior of Julia’s default inner constructors and make the type specification <code class="language-plaintext highlighter-rouge">{M, N}</code> in the constructor call optional.
+There might be situations where it is better to let the user specify a parametric type in the inner constructor than to let Julia deduce it.</p>
+
+<p>For instance, consider the case where you have a structure <code class="language-plaintext highlighter-rouge">Particle</code> containing the kinetic and potential energy of a particle in the local gravitational field, but the constructor only requires its mass and velocity:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>
+
+<span class="k">struct</span><span class="nc"> Particle</span><span class="x">{</span><span class="n">E</span> <span class="o">&lt;:</span> <span class="kt">Real</span><span class="x">}</span>
+  <span class="n">kinetic_energy</span><span class="o">::</span><span class="n">E</span>
+  <span class="n">potential_energy</span><span class="o">::</span><span class="n">E</span>
+
+  <span class="k">function</span><span class="nf"> Particle</span><span class="x">{</span><span class="n">E</span><span class="x">}(</span><span class="n">mass</span><span class="x">,</span> <span class="n">velocity</span><span class="x">,</span> <span class="n">height</span><span class="x">)</span> <span class="k">where</span> <span class="x">{</span><span class="n">E</span><span class="x">}</span>
+    <span class="n">kinetic_energy</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">mass</span> <span class="o">*</span> <span class="n">velocity</span><span class="o">^</span><span class="mi">2</span>
+    <span class="n">potential_energy</span> <span class="o">=</span> <span class="n">mass</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">height</span>
+
+    <span class="k">return</span> <span class="n">new</span><span class="x">{</span><span class="n">E</span><span class="x">}(</span><span class="n">kinetic_energy</span><span class="x">,</span> <span class="n">potential_energy</span><span class="x">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>In this case, the parameters we pass to the constructor are not the same that are going to be stored in the object itself, and thus it might make sense to force the user to spell out the type to use:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">p</span> <span class="o">=</span> <span class="n">Particle</span><span class="x">{</span><span class="kt">Float32</span><span class="x">}(</span><span class="mf">1.0</span><span class="x">,</span> <span class="mf">3.0</span><span class="x">,</span> <span class="mf">2.0</span><span class="x">)</span>
+<span class="n">Particle</span><span class="x">{</span><span class="kt">Float32</span><span class="x">}(</span><span class="mf">4.5f0</span><span class="x">,</span> <span class="mf">19.62f0</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>We explicitly asked Julia to store the two energies in <code class="language-plaintext highlighter-rouge">p</code> as <code class="language-plaintext highlighter-rouge">Float32</code>, regardless of the fact that the input type of all the three parameters was <code class="language-plaintext highlighter-rouge">Float64</code>.</p>
+
+<p>For inner constructors, the type parameter <code class="language-plaintext highlighter-rouge">{E}</code> needs to be the same as the parametric type of the structure.
+This might sound obvious, but there can be cases where one might want to make the constructor able to deal with a wider set of input types.</p>
+
+<p>Assume, for instance, that you want to make <code class="language-plaintext highlighter-rouge">Particle</code> compatible with some code that expresses masses, velocities, and heights as complex numbers.
+(There are plenty of mathematical artifices in the literature to solve complicated physical problems analytically, often involving complex numbers used weirdly.)
+You know that you need to take the absolute values of the mass, velocity, and height to make <code class="language-plaintext highlighter-rouge">Particle</code> compute the kinetic and potential energies correctly.</p>
+
+<p>We might think that specifying the base type for <code class="language-plaintext highlighter-rouge">Particle</code> as <code class="language-plaintext highlighter-rouge">C &lt;: Complex</code> and using <code class="language-plaintext highlighter-rouge">abs</code> where appropriate should be enough.
+This will make the code behave the same as usual with real numbers and make <code class="language-plaintext highlighter-rouge">Particle</code> work with the code based on complex numbers, too.
+However, we cannot specify that the constructor accepts a type <code class="language-plaintext highlighter-rouge">C &lt;: Complex</code>, as this implementation is <em>not</em> correct:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>
+
+<span class="k">struct</span><span class="nc"> Particle</span><span class="x">{</span><span class="n">E</span> <span class="o">&lt;:</span> <span class="kt">Real</span><span class="x">}</span>
+  <span class="n">kinetic_energy</span><span class="o">::</span><span class="n">E</span>
+  <span class="n">potential_energy</span><span class="o">::</span><span class="n">E</span>
+
+  <span class="k">function</span><span class="nf"> Particle</span><span class="x">{</span><span class="n">C</span><span class="x">}(</span><span class="n">mass</span><span class="o">::</span><span class="n">C</span><span class="x">,</span> <span class="n">velocity</span><span class="o">::</span><span class="n">C</span><span class="x">,</span> <span class="n">height</span><span class="o">::</span><span class="n">C</span><span class="x">)</span> <span class="k">where</span> <span class="x">{</span><span class="n">C</span> <span class="o">&lt;:</span> <span class="kt">Complex</span><span class="x">}</span>
+    <span class="n">kinetic_energy</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">abs</span><span class="x">(</span><span class="n">mass</span><span class="x">)</span> <span class="o">*</span> <span class="n">abs</span><span class="x">(</span><span class="n">velocity</span><span class="x">)</span><span class="o">^</span><span class="mi">2</span>
+    <span class="n">potential_energy</span> <span class="o">=</span> <span class="n">abs</span><span class="x">(</span><span class="n">mass</span><span class="x">)</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">abs</span><span class="x">(</span><span class="n">height</span><span class="x">)</span>
+
+    <span class="n">E</span> <span class="o">=</span> <span class="n">typeof</span><span class="x">(</span><span class="n">kinetic_energy</span><span class="x">)</span>
+    <span class="k">return</span> <span class="n">new</span><span class="x">{</span><span class="n">E</span><span class="x">}(</span><span class="n">kinetic_energy</span><span class="x">,</span> <span class="n">potential_energy</span><span class="x">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>This code compiles, but calling the constructor with complex parameters does not work:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Particle</span><span class="x">{</span><span class="kt">ComplexF64</span><span class="x">}(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">5.0</span><span class="nb">im</span><span class="x">,</span> <span class="mf">3.0</span> <span class="o">+</span> <span class="mf">4.0</span><span class="nb">im</span><span class="x">,</span> <span class="mf">2.0</span> <span class="o">+</span> <span class="mf">1.0</span><span class="nb">im</span><span class="x">)</span>
+<span class="n">ERROR</span><span class="o">:</span> <span class="kt">TypeError</span><span class="o">:</span> <span class="k">in</span> <span class="n">Particle</span><span class="x">,</span> <span class="k">in</span> <span class="n">E</span><span class="x">,</span> <span class="n">expected</span> <span class="n">E</span><span class="o">&lt;:</span><span class="kt">Real</span><span class="x">,</span> <span class="n">got</span> <span class="kt">Type</span><span class="x">{</span><span class="kt">ComplexF64</span><span class="x">}</span>
+<span class="n">Stacktrace</span><span class="o">:</span>
+ <span class="x">[</span><span class="mi">1</span><span class="x">]</span> <span class="n">top</span><span class="o">-</span><span class="n">level</span> <span class="n">scope</span>
+   <span class="err">@</span> <span class="n">REPL</span><span class="x">[</span><span class="mi">3</span><span class="x">]</span><span class="o">:</span><span class="mi">1</span>
+</code></pre></div></div>
+
+<p>Moreover, we lose the ability to use the constructor with proper parameters, because once we define an inner constructor, <em>Julia stops providing its default one</em>:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Particle</span><span class="x">{</span><span class="kt">Float64</span><span class="x">}(</span><span class="mf">1.0</span><span class="x">,</span> <span class="mf">3.0</span><span class="x">,</span> <span class="mf">2.0</span><span class="x">)</span>
+<span class="n">ERROR</span><span class="o">:</span> <span class="kt">MethodError</span><span class="o">:</span> <span class="n">no</span> <span class="n">method</span> <span class="n">matching</span> <span class="n">Particle</span><span class="x">{</span><span class="kt">Float64</span><span class="x">}(</span><span class="o">::</span><span class="kt">Float64</span><span class="x">,</span> <span class="o">::</span><span class="kt">Float64</span><span class="x">,</span> <span class="o">::</span><span class="kt">Float64</span><span class="x">)</span>
+<span class="n">Stacktrace</span><span class="o">:</span>
+ <span class="x">[</span><span class="mi">1</span><span class="x">]</span> <span class="n">top</span><span class="o">-</span><span class="n">level</span> <span class="n">scope</span>
+   <span class="err">@</span> <span class="n">REPL</span><span class="x">[</span><span class="mi">4</span><span class="x">]</span><span class="o">:</span><span class="mi">1</span>
+</code></pre></div></div>
+
+<p>The problem is that “the signature of the constructor cannot widen the type’s parameters”, as explained in <a href="https://discourse.julialang.org/t/constructors-for-parametric-types/119971/4">this post</a> by <strong>@Benny</strong>.</p>
+
+<p>There are several possible solutions:</p>
+
+<ol>
+  <li>
+    <p>Define the inner constructor as <code class="language-plaintext highlighter-rouge">Particle(mass::C, velocity::C, height::C) where {C &lt;: Complex}</code>, i.e., replace <code class="language-plaintext highlighter-rouge">Particle{C}</code> with <code class="language-plaintext highlighter-rouge">Particle</code>.</p>
+  </li>
+  <li>
+    <p>Move the constructor outside the <code class="language-plaintext highlighter-rouge">struct</code>, making it an <em>outer constructor</em>.
+Outer constructors are defined <em>outside</em> the <code class="language-plaintext highlighter-rouge">struct</code> statement, hence the name.
+You have less constraints when you define them, but they can no longer rely on <code class="language-plaintext highlighter-rouge">new()</code> and must instead call an inner constructor.
+Here is a reworked version of our example:</p>
+
+    <div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>
+
+<span class="k">struct</span><span class="nc"> Particle</span><span class="x">{</span><span class="n">E</span> <span class="o">&lt;:</span> <span class="kt">Real</span><span class="x">}</span>
+  <span class="n">kinetic_energy</span><span class="o">::</span><span class="n">E</span>
+  <span class="n">potential_energy</span><span class="o">::</span><span class="n">E</span>
+
+  <span class="c"># No inner constructor, let's use the one provided by Julia</span>
+<span class="k">end</span>
+
+<span class="c"># Note that we do *not* specify `Particle{C}`, as it is no longer</span>
+<span class="c"># an inner constructor!</span>
+<span class="k">function</span><span class="nf"> Particle</span><span class="x">(</span><span class="n">mass</span><span class="o">::</span><span class="n">C</span><span class="x">,</span> <span class="n">velocity</span><span class="o">::</span><span class="n">C</span><span class="x">,</span> <span class="n">height</span><span class="o">::</span><span class="n">C</span><span class="x">)</span> <span class="k">where</span> <span class="x">{</span><span class="n">C</span> <span class="o">&lt;:</span> <span class="kt">Complex</span><span class="x">}</span>
+  <span class="n">kinetic_energy</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">abs</span><span class="x">(</span><span class="n">mass</span><span class="x">)</span> <span class="o">*</span> <span class="n">abs</span><span class="x">(</span><span class="n">velocity</span><span class="x">)</span><span class="o">^</span><span class="mi">2</span>
+  <span class="n">potential_energy</span> <span class="o">=</span> <span class="n">abs</span><span class="x">(</span><span class="n">mass</span><span class="x">)</span> <span class="o">*</span> <span class="n">g</span> <span class="o">*</span> <span class="n">abs</span><span class="x">(</span><span class="n">height</span><span class="x">)</span>
+
+  <span class="n">E</span> <span class="o">=</span> <span class="n">typeof</span><span class="x">(</span><span class="n">kinetic_energy</span><span class="x">)</span>
+  <span class="o">//</span> <span class="n">Call</span> <span class="n">the</span> <span class="x">(</span><span class="n">default</span><span class="x">)</span> <span class="n">inner</span> <span class="n">constructor</span>
+  <span class="k">return</span> <span class="n">Particle</span><span class="x">{</span><span class="n">E</span><span class="x">}(</span><span class="n">kinetic_energy</span><span class="x">,</span> <span class="n">potential_energy</span><span class="x">)</span>
+<span class="k">end</span>
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p>Now that we have presented how parametric constructors work, let’s share a few tips.</p>
+
+<h1 id="smart-use-of-promote">Smart use of <code class="language-plaintext highlighter-rouge">promote</code></h1>
+
+<p>Suppose you need to define a type to represent a 3D vector.
+The three components should be floating-point numbers, as you are going to compute the norm of the vector, taking cross products, etc., and all these operations are defined for real numbers.
+On the other hand, you want to be able to quickly instantiate vectors using integer components:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">e_x</span> <span class="o">=</span> <span class="n">Vec</span><span class="x">(</span><span class="mi">1</span><span class="x">,</span> <span class="mi">0</span><span class="x">,</span> <span class="mi">0</span><span class="x">)</span>   <span class="c"># Easier to type and read than `Vec(1.0, 0.0, 0.0)`</span>
+</code></pre></div></div>
+
+<p>Let’s look at a few possible ways to define a 3D vector that is handy to use and does the “right” thing in typical situations.</p>
+
+<p>We can attempt to define <code class="language-plaintext highlighter-rouge">Vec</code> in the following way:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s">"A 3D vector"</span>
+<span class="k">struct</span><span class="nc"> Vec</span><span class="x">{</span><span class="n">T</span> <span class="o">&lt;:</span> <span class="kt">AbstractFloat</span><span class="x">}</span>  <span class="c"># Force `T` to be a floating-point type</span>
+    <span class="n">x</span><span class="o">::</span><span class="n">T</span>
+    <span class="n">y</span><span class="o">::</span><span class="n">T</span>
+    <span class="n">z</span><span class="o">::</span><span class="n">T</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Let’s now define the three basis vectors $\hat e_x$, $\hat e_y$, $\hat e_z$.
+Unfortunately, we cannot use the notation <code class="language-plaintext highlighter-rouge">Vec(1, 0, 0)</code> for $\hat e_x$, as Julia would complain that we are passing integers instead of floats.
+It is the problem we mentioned above!
+Rather, we must type</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ex</span> <span class="o">=</span> <span class="n">Vec</span><span class="x">(</span><span class="mf">1.</span><span class="x">,</span> <span class="mf">0.</span><span class="x">,</span> <span class="mf">0.</span><span class="x">)</span>
+<span class="n">ey</span> <span class="o">=</span> <span class="n">Vec</span><span class="x">(</span><span class="mf">0.</span><span class="x">,</span> <span class="mf">1.</span><span class="x">,</span> <span class="mf">0.</span><span class="x">)</span>
+<span class="n">ez</span> <span class="o">=</span> <span class="n">Vec</span><span class="x">(</span><span class="mf">0.</span><span class="x">,</span> <span class="mf">0.</span><span class="x">,</span> <span class="mf">1.</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>or</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ex</span> <span class="o">=</span> <span class="n">Vec</span><span class="x">{</span><span class="kt">Float64</span><span class="x">}(</span><span class="mi">1</span><span class="x">,</span> <span class="mi">0</span><span class="x">,</span> <span class="mi">0</span><span class="x">)</span>
+<span class="n">ey</span> <span class="o">=</span> <span class="n">Vec</span><span class="x">{</span><span class="kt">Float64</span><span class="x">}(</span><span class="mi">0</span><span class="x">,</span> <span class="mi">1</span><span class="x">,</span> <span class="mi">0</span><span class="x">)</span>
+<span class="n">ez</span> <span class="o">=</span> <span class="n">Vec</span><span class="x">{</span><span class="kt">Float64</span><span class="x">}(</span><span class="mi">0</span><span class="x">,</span> <span class="mi">0</span><span class="x">,</span> <span class="mi">1</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>Both solutions are quite ugly.
+However, we can define an <em>outer</em> constructor that performs the correct conversion:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span><span class="nf"> Vec</span><span class="x">(</span><span class="n">x</span><span class="x">,</span> <span class="n">y</span><span class="x">,</span> <span class="n">z</span><span class="x">)</span>
+    <span class="n">xp</span><span class="x">,</span> <span class="n">yp</span><span class="x">,</span> <span class="n">zp</span> <span class="o">=</span> <span class="n">promote</span><span class="x">(</span><span class="n">float</span><span class="x">(</span><span class="n">x</span><span class="x">),</span> <span class="n">float</span><span class="x">(</span><span class="n">y</span><span class="x">),</span> <span class="n">float</span><span class="x">(</span><span class="n">z</span><span class="x">))</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">typeof</span><span class="x">(</span><span class="n">xp</span><span class="x">)</span>
+    <span class="k">return</span> <span class="n">Vec</span><span class="x">{</span><span class="n">T</span><span class="x">}(</span><span class="n">xp</span><span class="x">,</span> <span class="n">yp</span><span class="x">,</span> <span class="n">zp</span><span class="x">)</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>We use <code class="language-plaintext highlighter-rouge">float()</code> to convert integer types to a suitable floating point type, and <code class="language-plaintext highlighter-rouge">promote</code> returns a tuple where all the value are “pushed” up to the smallest type capable to hold all the values.
+This means that even if we pass a <code class="language-plaintext highlighter-rouge">Float64</code> for <code class="language-plaintext highlighter-rouge">x</code>, a <code class="language-plaintext highlighter-rouge">Float32</code> for <code class="language-plaintext highlighter-rouge">y</code>, and a <code class="language-plaintext highlighter-rouge">Int8</code> for z (weird case!), the result will be that <code class="language-plaintext highlighter-rouge">xp</code>, <code class="language-plaintext highlighter-rouge">yp</code>, and <code class="language-plaintext highlighter-rouge">zp</code> will all be <code class="language-plaintext highlighter-rouge">Float64</code>:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Vec</span><span class="x">(</span><span class="mi">1</span><span class="x">,</span> <span class="mi">0</span><span class="x">,</span> <span class="mi">0</span><span class="x">)</span>
+<span class="n">Vec</span><span class="x">{</span><span class="kt">Float64</span><span class="x">}(</span><span class="mf">1.0</span><span class="x">,</span> <span class="mf">0.0</span><span class="x">,</span> <span class="mf">0.0</span><span class="x">)</span>
+
+<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Vec</span><span class="x">(</span><span class="mf">1.0f0</span><span class="x">,</span> <span class="mf">0.0f0</span><span class="x">,</span> <span class="mf">0.0f0</span><span class="x">)</span>
+<span class="n">Vec</span><span class="x">{</span><span class="kt">Float32</span><span class="x">}(</span><span class="mf">1.0f0</span><span class="x">,</span> <span class="mf">0.0f0</span><span class="x">,</span> <span class="mf">0.0f0</span><span class="x">)</span>
+
+<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Vec</span><span class="x">(</span><span class="mf">1.0f0</span><span class="x">,</span> <span class="kt">Int16</span><span class="x">(</span><span class="mi">2</span><span class="x">),</span> <span class="kt">Int8</span><span class="x">(</span><span class="mi">3</span><span class="x">))</span>
+<span class="n">Vec</span><span class="x">{</span><span class="kt">Float64</span><span class="x">}(</span><span class="mf">1.0</span><span class="x">,</span> <span class="mf">2.0</span><span class="x">,</span> <span class="mf">3.0</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>Note that in the latter case Julia uses <code class="language-plaintext highlighter-rouge">Float64</code> despite the fact that we only passed integers and <code class="language-plaintext highlighter-rouge">Float32</code>, so <code class="language-plaintext highlighter-rouge">Float32</code> would have been enough.
+The problem is that <code class="language-plaintext highlighter-rouge">float()</code> converts integers to <code class="language-plaintext highlighter-rouge">Float64</code> by default, hence the result.
+If you prefer to use the smallest <code class="language-plaintext highlighter-rouge">FloatXX</code> type available, just invert the order between <code class="language-plaintext highlighter-rouge">promote()</code> and <code class="language-plaintext highlighter-rouge">float()</code>:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">function</span><span class="nf"> Vec</span><span class="x">(</span><span class="n">x</span><span class="x">,</span> <span class="n">y</span><span class="x">,</span> <span class="n">z</span><span class="x">)</span>
+    <span class="n">xp</span><span class="x">,</span> <span class="n">yp</span><span class="x">,</span> <span class="n">zp</span> <span class="o">=</span> <span class="x">(</span><span class="n">float</span><span class="x">(</span><span class="n">val</span><span class="x">)</span> <span class="k">for</span> <span class="n">val</span> <span class="k">in</span> <span class="n">promote</span><span class="x">(</span><span class="n">x</span><span class="x">,</span> <span class="n">y</span><span class="x">,</span> <span class="n">z</span><span class="x">))</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">typeof</span><span class="x">(</span><span class="n">xp</span><span class="x">)</span>
+    <span class="k">return</span> <span class="n">Vec</span><span class="x">{</span><span class="n">T</span><span class="x">}(</span><span class="n">xp</span><span class="x">,</span> <span class="n">yp</span><span class="x">,</span> <span class="n">zp</span><span class="x">)</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>With this definition, our last example produces a <code class="language-plaintext highlighter-rouge">Vec{Float32}</code> object:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Vec</span><span class="x">(</span><span class="mf">1.0f0</span><span class="x">,</span> <span class="kt">Int16</span><span class="x">(</span><span class="mi">2</span><span class="x">),</span> <span class="kt">Int8</span><span class="x">(</span><span class="mi">3</span><span class="x">))</span>
+<span class="n">Vec</span><span class="x">{</span><span class="kt">Float32</span><span class="x">}(</span><span class="mf">1.0</span><span class="x">,</span> <span class="mf">2.0</span><span class="x">,</span> <span class="mf">3.0</span><span class="x">)</span>
+</code></pre></div></div>
+
+<h1 id="making-unitful-compatible-types">Making Unitful-compatible types</h1>
+
+<p>Be aware that there are cases when it is better to mark the fact that different fields in a <code class="language-plaintext highlighter-rouge">struct</code> have different types, even if they take the same amount of memory.
+Let’s consider a structure holding the coordinates of a 2D point in polar coordinates.
+A naive implementation could be the following:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> PolPoint</span><span class="x">{</span><span class="n">T</span> <span class="o">&lt;:</span> <span class="kt">Number</span><span class="x">}</span>
+    <span class="n">r</span><span class="o">::</span><span class="n">T</span>
+    <span class="n">θ</span><span class="o">::</span><span class="n">T</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>The intent of the programmer was surely to let the user use <code class="language-plaintext highlighter-rouge">Float64</code>, <code class="language-plaintext highlighter-rouge">Float32</code>, or even <code class="language-plaintext highlighter-rouge">BigFloat</code> to store the two components of the coordinates.
+That’s the reason why they declared <code class="language-plaintext highlighter-rouge">PolPoint</code> as a parametric type.</p>
+
+<p>However, if <code class="language-plaintext highlighter-rouge">PolPoint</code> is used in a code that keeps track of measurement units through the <a href="https://painterqubits.github.io/Unitful.jl/stable/">Unitful.jl</a> package, troubles will arise.
+The <code class="language-plaintext highlighter-rouge">r</code> coordinate is a length, while <code class="language-plaintext highlighter-rouge">θ</code> is an angle, and thus they cannot be of the same type <code class="language-plaintext highlighter-rouge">T</code>!</p>
+
+<p>The correct solution is to define <code class="language-plaintext highlighter-rouge">PolPoint</code> in the following way:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> PolPoint</span><span class="x">{</span><span class="n">L</span> <span class="o">&lt;:</span> <span class="kt">Number</span><span class="x">,</span> <span class="n">A</span> <span class="o">&lt;:</span> <span class="kt">Number</span><span class="x">}</span>
+    <span class="n">r</span><span class="o">::</span><span class="n">L</span>
+    <span class="n">θ</span><span class="o">::</span><span class="n">A</span>
+
+    <span class="c"># Inner constructor to perform basic checks and</span>
+    <span class="c"># prevent Julia from creating a default one</span>
+    <span class="k">function</span><span class="nf"> PolPoint</span><span class="x">{</span><span class="n">L</span><span class="x">,</span> <span class="n">A</span><span class="x">}(</span><span class="n">r</span><span class="x">,</span> <span class="n">θ</span><span class="x">)</span> <span class="k">where</span> <span class="x">{</span><span class="n">L</span><span class="x">,</span> <span class="n">A</span><span class="x">}</span>
+        <span class="n">r</span> <span class="o">≥</span> <span class="n">zero</span><span class="x">(</span><span class="n">r</span><span class="x">)</span> <span class="o">||</span> <span class="n">error</span><span class="x">(</span><span class="s">"Invalid value for r = </span><span class="si">$</span><span class="s">r"</span><span class="x">)</span>
+        <span class="n">new</span><span class="x">{</span><span class="n">L</span><span class="x">,</span> <span class="n">A</span><span class="x">}(</span><span class="n">r</span><span class="x">,</span> <span class="n">θ</span><span class="x">)</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c"># Since we stopped Julia from providing a default inner</span>
+<span class="c"># constructor, this outer constructor won’t be shadowed</span>
+<span class="c"># by it</span>
+<span class="k">function</span><span class="nf"> PolPoint</span><span class="x">(</span><span class="n">r</span><span class="x">,</span> <span class="n">θ</span><span class="x">)</span>
+    <span class="n">rp</span> <span class="o">=</span> <span class="n">float</span><span class="x">(</span><span class="n">r</span><span class="x">)</span>
+    <span class="n">θp</span> <span class="o">=</span> <span class="n">float</span><span class="x">(</span><span class="n">θ</span><span class="x">)</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">typeof</span><span class="x">(</span><span class="n">rp</span><span class="x">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">typeof</span><span class="x">(</span><span class="n">θp</span><span class="x">)</span>
+    <span class="k">return</span> <span class="n">PolPoint</span><span class="x">{</span><span class="n">L</span><span class="x">,</span> <span class="n">A</span><span class="x">}(</span><span class="n">rp</span><span class="x">,</span> <span class="n">θp</span><span class="x">)</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>where <code class="language-plaintext highlighter-rouge">L</code> marks the fact that the type encodes a length, while <code class="language-plaintext highlighter-rouge">A</code> encodes an angle.
+If the caller does not care about measurement units, they are able to use the type as usual:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">PolPoint</span><span class="x">(</span><span class="mi">3</span><span class="x">,</span> <span class="nb">π</span><span class="o">/</span><span class="mi">2</span><span class="x">)</span>
+<span class="n">PolPoint</span><span class="x">{</span><span class="kt">Float64</span><span class="x">,</span> <span class="kt">Float64</span><span class="x">}(</span><span class="mf">3.0</span><span class="x">,</span> <span class="mf">1.5707963267948966</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>But the type is able to work well with Unitful.jl as well:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="k">import</span> <span class="n">Unitful</span><span class="o">:</span> <span class="n">°</span><span class="x">,</span> <span class="n">m</span>
+
+<span class="n">julia</span><span class="o">&gt;</span> <span class="n">PolPoint</span><span class="x">(</span><span class="mi">1</span><span class="n">m</span><span class="x">,</span> <span class="mi">90</span><span class="n">°</span><span class="x">)</span>
+<span class="n">PolPoint</span><span class="x">{</span>
+    <span class="n">Unitful</span><span class="o">.</span><span class="n">Quantity</span><span class="x">{</span><span class="kt">Float64</span><span class="x">,</span> <span class="err">𝐋</span><span class="x">,</span> <span class="n">Unitful</span><span class="o">.</span><span class="n">FreeUnits</span><span class="x">{(</span><span class="n">m</span><span class="x">,),</span> <span class="err">𝐋</span><span class="x">,</span> <span class="nb">nothing</span><span class="x">}},</span>
+    <span class="n">Unitful</span><span class="o">.</span><span class="n">Quantity</span><span class="x">{</span><span class="kt">Float64</span><span class="x">,</span> <span class="n">NoDims</span><span class="x">,</span> <span class="n">Unitful</span><span class="o">.</span><span class="n">FreeUnits</span><span class="x">{(</span><span class="n">°</span><span class="x">,),</span> <span class="n">NoDims</span><span class="x">,</span> <span class="nb">nothing</span><span class="x">}}</span>
+<span class="x">}(</span><span class="mf">1.0</span> <span class="n">m</span><span class="x">,</span> <span class="mf">90.0</span><span class="n">°</span><span class="x">)</span>
+</code></pre></div></div>
+
+<h1 id="use-of-kwdef">Use of <code class="language-plaintext highlighter-rouge">@kwdef</code></h1>
+
+<p>Since Julia 1.9, the macro <a href="https://docs.julialang.org/en/v1/base/base/#Base.@kwdef"><code class="language-plaintext highlighter-rouge">@kwdef</code></a> is publicly available to help designing easy-to-use types.
+It implements a constructor that takes the parameters from keyword parameters named after the fields of the <code class="language-plaintext highlighter-rouge">struct</code>:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@kwdef</span> <span class="k">struct</span><span class="nc"> SimulationParameters</span>
+    <span class="n">input_file</span><span class="o">::</span><span class="kt">String</span>
+    <span class="n">output_file</span><span class="o">::</span><span class="kt">String</span>
+    <span class="n">error_threshold</span><span class="o">::</span><span class="kt">Float64</span> <span class="o">=</span> <span class="mf">1e-7</span>
+    <span class="n">num_of_iterations</span><span class="o">::</span><span class="kt">Int</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="k">end</span>
+
+<span class="n">params</span> <span class="o">=</span> <span class="n">SimulationParameters</span><span class="x">(</span>
+    <span class="n">input_file</span> <span class="o">=</span> <span class="s">"foo.txt"</span><span class="x">,</span>
+    <span class="n">output_file</span> <span class="o">=</span> <span class="s">"bar.txt"</span><span class="x">,</span>
+    <span class="c"># Do not specify `error_threshold` and use the default value</span>
+    <span class="n">num_of_iterations</span> <span class="o">=</span> <span class="mi">500</span><span class="x">,</span>    <span class="c"># Use a value different than the default</span>
+<span class="x">)</span>
+</code></pre></div></div>
+
+<p>The biggest advantage in using <code class="language-plaintext highlighter-rouge">@kwdef</code> is readability.
+Compare the call above to the constructor with one which does not use keywords:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span><span class="nc"> SimulationParameters</span>
+    <span class="n">input_file</span><span class="o">::</span><span class="kt">String</span>
+    <span class="n">output_file</span><span class="o">::</span><span class="kt">String</span>
+    <span class="n">error_threshold</span><span class="o">::</span><span class="kt">Float64</span>
+    <span class="n">num_of_iterations</span><span class="o">::</span><span class="kt">Int</span>
+<span class="k">end</span>
+
+<span class="c"># Without keywords, how can I tell if "foo.txt" is the input or output file?</span>
+<span class="c"># And I must pass the value for `error_threshold`, as I could not specify</span>
+<span class="c"># default values when I defined the type</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">SimulationParameters</span><span class="x">(</span><span class="s">"foo.txt"</span><span class="x">,</span> <span class="s">"bar.txt"</span><span class="x">,</span> <span class="mf">1e-7</span><span class="x">,</span> <span class="mi">500</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>You can inspect the implementation of <code class="language-plaintext highlighter-rouge">@kwdef</code> in Julia’s <a href="https://github.com/JuliaLang/julia/blob/b79856e7a84b7c945590cafae74efbeaf4d9d8f9/base/util.jl#L545">GitHub repository</a>.</p>
+
+<p>There is one thing you should be aware of when using <code class="language-plaintext highlighter-rouge">@kwdef</code> with parametric types.
+Consider this example:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@kwdef</span> <span class="k">struct</span><span class="nc"> GasOfParticles</span><span class="x">{</span><span class="n">T</span> <span class="o">&lt;:</span> <span class="kt">Real</span><span class="x">}</span>
+  <span class="n">num_of_particles</span><span class="o">::</span><span class="kt">Int64</span> <span class="o">=</span> <span class="mi">10_000</span>
+  <span class="n">temperature</span><span class="o">::</span><span class="n">T</span> <span class="o">=</span> <span class="n">zero</span><span class="x">(</span><span class="n">T</span><span class="x">)</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>We use <code class="language-plaintext highlighter-rouge">GasOfParticles</code> to simulate an ideal gas in thermal equilibrium, and we want that the temperature be zero when not specified.
+This definition implements a constructor that accepts no parameters at all, as all the fields have a default value.
+This constructor happily accepts that you avoid passing a specific type <code class="language-plaintext highlighter-rouge">{T}</code>, but then Julia complains because <code class="language-plaintext highlighter-rouge">T</code> is undefined!</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">GasOfParticles</span><span class="x">(</span><span class="n">num_of_particles</span> <span class="o">=</span> <span class="mi">100</span><span class="x">)</span>
+<span class="n">ERROR</span><span class="o">:</span> <span class="kt">UndefVarError</span><span class="o">:</span> <span class="sb">`T`</span> <span class="n">not</span> <span class="n">defined</span>
+<span class="n">Stacktrace</span><span class="o">:</span>
+ <span class="x">[</span><span class="mi">1</span><span class="x">]</span> <span class="n">top</span><span class="o">-</span><span class="n">level</span> <span class="n">scope</span>
+   <span class="err">@</span> <span class="n">REPL</span><span class="x">[</span><span class="mi">2</span><span class="x">]</span><span class="o">:</span><span class="mi">1</span>
+</code></pre></div></div>
+
+<p>Of course, things work if you remember to supply the parametric type within curly braces:</p>
+
+<div class="language-julia highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">julia</span><span class="o">&gt;</span> <span class="n">GasOfParticles</span><span class="x">{</span><span class="kt">Float64</span><span class="x">}(</span><span class="n">num_of_particles</span> <span class="o">=</span> <span class="mi">100</span><span class="x">)</span>
+<span class="n">GasOfParticles</span><span class="x">{</span><span class="kt">Float64</span><span class="x">}(</span><span class="mi">100</span><span class="x">,</span> <span class="mf">0.0</span><span class="x">)</span>
+</code></pre></div></div>
+
+<p>In this simple example, spotting the error’s location is straightforward.
+However, in more intricate codebases, the error message <code class="language-plaintext highlighter-rouge">`T` is not defined</code> might be challenging to understand because it does not state that the issue was in the call to <code class="language-plaintext highlighter-rouge">GasOfParticles(…)</code>.</p>
+
+<h1 id="acknowledgements">Acknowledgements</h1>
+
+<p>Thanks a lot to the people on the <a href="https://discourse.julialang.org/">Julia Forum</a> for useful discussions.
+See in particular the posts in the two threads <a href="https://discourse.julialang.org/t/how-to-use-kwdef-with-parametric-types-and-inner-constructors/107948">How to use <code class="language-plaintext highlighter-rouge">@kwdef</code> with parametric types and inner constructors</a> and <a href="https://discourse.julialang.org/t/constructors-for-parametric-types/119971">Constructors for parametric types</a>.</p>
+
+<h1 id="edits">Edits</h1>
+
+<p>Patrick Häcker <a href="https://discourse.julialang.org/t/new-blog-post-about-julia-parametric-types-and-constructors/120717/7">suggested</a> to use polar coordinates instead of spherical coordinates in the example in <a href="##making-unitful-compatible-types">Making Unitful-compatible types</a>.</p>
+
+  </div><a class="u-url" href="/julia/2024/10/07/julia-parametric-constructors.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <script src="https://utteranc.es/client.js"
+          repo="ziotom78/ziotom78.github.io"
+          issue-term="title"
+          theme="github-light"
+          crossorigin="anonymous"
+          async>
+  </script>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Maurizio&#39;s blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Maurizio&#39;s blog</li><li><a class="u-email" href="mailto:ziotom78@gmail.com">ziotom78@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/ziotom78"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">ziotom78</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>My personal blog, where I write about stuff related to my work and my hobbies.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

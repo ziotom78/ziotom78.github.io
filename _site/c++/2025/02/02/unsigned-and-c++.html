@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Use of unsigned int in C++ | Maurizio’s blog</title>
+<meta name="generator" content="Jekyll v4.3.4" />
+<meta property="og:title" content="Use of unsigned int in C++" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="When learning to use vectors in C++, it is common for students to encounter certain issues and warnings while writing their code. One such issue is the warning that appears when using a signed integer to loop through a vector, like the following example shows:" />
+<meta property="og:description" content="When learning to use vectors in C++, it is common for students to encounter certain issues and warnings while writing their code. One such issue is the warning that appears when using a signed integer to loop through a vector, like the following example shows:" />
+<link rel="canonical" href="/c++/2025/02/02/unsigned-and-c++.html" />
+<meta property="og:url" content="/c++/2025/02/02/unsigned-and-c++.html" />
+<meta property="og:site_name" content="Maurizio’s blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-02-02T00:00:00+01:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Use of unsigned int in C++" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2025-02-02T00:00:00+01:00","datePublished":"2025-02-02T00:00:00+01:00","description":"When learning to use vectors in C++, it is common for students to encounter certain issues and warnings while writing their code. One such issue is the warning that appears when using a signed integer to loop through a vector, like the following example shows:","headline":"Use of unsigned int in C++","mainEntityOfPage":{"@type":"WebPage","@id":"/c++/2025/02/02/unsigned-and-c++.html"},"url":"/c++/2025/02/02/unsigned-and-c++.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Maurizio&apos;s blog" />
+
+<!-- CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css" />
+
+<!-- JavaScript -->
+<script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{
+    delimiters: [
+      { left: '$$',  right: '$$',  display: true  },
+      { left: '$',   right: '$',   display: false },
+      { left: '\\[', right: '\\]', display: true  },
+      { left: '\\(', right: '\\)', display: false }
+  ]});">
+  </script>
+
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Maurizio&#39;s blog</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Use of `unsigned int` in C++</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2025-02-02T00:00:00+01:00" itemprop="datePublished">Feb 2, 2025
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>When learning to use vectors in C++, it is common for students to encounter certain issues and warnings while writing their code. One such issue is the warning that appears when using a signed integer to loop through a vector, like the following example shows:</p>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
+#include</span> <span class="cpf">&lt;vector&gt;</span><span class="cp">
+</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">vector</span> <span class="n">v</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">};</span>
+
+    <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">{};</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">v</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">v</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>When compiling the code using the <code class="language-plaintext highlighter-rouge">-Wall</code> flag, the compiler generates the following warning:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ g++ -o -g3 -Wall --pedantic test test.cpp
+test.cpp: In function ‘int main()’:
+test.cpp:9:18: warning: comparison of integer expressions of different signedness: ‘int’ and ‘std::vector&lt;int, std::allocator&lt;int&gt; &gt;::size_type’ {aka ‘long unsigned int’} [-Wsign-compare]
+    9 |   for(int i{}; i &lt; v.size(); ++i) {
+      |                ~~^~~~~~~~~~
+/usr/bin/ld: test: _ZSt4cout: invalid version 2 (max 0)
+/usr/bin/ld: test: error adding symbols: bad value
+collect2: error: ld returned 1 exit status
+</code></pre></div></div>
+
+<p>The warning is generated because <code class="language-plaintext highlighter-rouge">std::vector::size()</code> returns an <em>unsigned</em> integer, while the loop variable <code class="language-plaintext highlighter-rouge">i</code> is a <em>signed</em> integer. (This is exactly what the compiler prints, but it seems that students do not like to carefully read compiler’s messages!) When explaining this error, I always mention that <code class="language-plaintext highlighter-rouge">size()</code> should actually have been declared as <code class="language-plaintext highlighter-rouge">int</code> by the C++ standard.</p>
+
+<p>One of my students thought more about this and sent me this email:</p>
+
+<blockquote>
+  <p>…at first glance it doesn’t seem entirely unreasonable to use an index variable without a sign for array and vector dimensions. A vector of dimension -5 doesn’t make sense, so it would seem reasonable to remove ambiguity on the sign. I think the problem actually concerns managing vectors and arrays, because using an unsigned value, even when doing a loop for example, requires casting.</p>
+</blockquote>
+
+<p>He’s right: using a <em>signed</em> integer to hold the number of items in a vector would look weird! However, there are subtle problems with <code class="language-plaintext highlighter-rouge">unsigned</code> integers, and the newest version of the C++ standard mandate for a new solution in the form of the new <a href="https://en.cppreference.com/w/cpp/iterator/size"><code class="language-plaintext highlighter-rouge">ssize()</code></a> function.</p>
+
+<p>Consider a 32-bit integer, which can assume any value in the range -2,147,483,648…+2,147,483,647. If the variable <code class="language-plaintext highlighter-rouge">x</code> holds the value -2147483648 and you decrement it, causing an <em>underflow</em>, the C++ standard doesn’t specify what happens. Usually, you get the maximum value (+2147483647), but on specific machines, the program might crash or even freeze the machine (the same applies to the opposite, known as <em>overflow</em>).</p>
+
+<p>When underflow/overflow occurs, it’s usually unintentional and a problem in 99% of cases. If possible, the solution is to declare <code class="language-plaintext highlighter-rouge">x</code> as 64-bit (using <code class="language-plaintext highlighter-rouge">int64_t</code>). If you know that <code class="language-plaintext highlighter-rouge">abs(x)</code> will always be much smaller than a billion, you can sleep peacefully.</p>
+
+<p>Now, let’s talk about the woes of unsigned variables. There’s a significant difference in increments and decrements here, because the C++ standard <em>guarantees</em> that if you decrement an unsigned variable equal to 0, you’ll get the maximum value (which for 32-bit integers is 4294967295). If you increment the maximum value 4294967295, you’ll get zero.</p>
+
+<p>On the one hand, this is nice because you always know what to expect. On the other hand, from an algorithmic perspective, this behavior can cause problem: in the typical lifetime of an integer variable, it happens often that its value becomes zero, and it’s not always the best thing to make a decrement (or subtraction, for that matter) <em>increase</em> the value of that variable!</p>
+
+<p>For example, consider this code that prints the elements of an array <code class="language-plaintext highlighter-rouge">vect</code>, which uses an unsigned counter (<code class="language-plaintext highlighter-rouge">size_t</code>):</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span><span class="p">{};</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">vect</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">vect</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Because <code class="language-plaintext highlighter-rouge">vect.size()</code> already returns <code class="language-plaintext highlighter-rouge">size_t</code> (an unsigned integer), there’s no need for any cast: the program compiles without warnings and works perfectly. It seems so easy!</p>
+
+<p>Now, suppose you must modify the code to print the vector elements in reverse order. You diligently change it to make it like this:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span><span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span><span class="p">{</span><span class="n">vect</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">};</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="o">--</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">vect</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>But the code is wrong because, in one fell swoop, you’ve introduced <em>two</em> problems:</p>
+
+<ol>
+  <li>
+    <p>The loop shouldn’t print anything if the vector is empty. But in the above code, since <code class="language-plaintext highlighter-rouge">vect.size() == 0</code>, the variable <code class="language-plaintext highlighter-rouge">i</code> is initialized to the value <code class="language-plaintext highlighter-rouge">vect.size() - 1</code>, which is a huge and positive value and will cause problems in evaluating <code class="language-plaintext highlighter-rouge">vect[i]</code></p>
+  </li>
+  <li>
+    <p>The condition <code class="language-plaintext highlighter-rouge">i &gt;= 0</code> is always true, because <code class="language-plaintext highlighter-rouge">i</code> is unsigned; thus, the statement <code class="language-plaintext highlighter-rouge">--i</code> is executed even when <code class="language-plaintext highlighter-rouge">i == 0</code>, causing an underflow and making <code class="language-plaintext highlighter-rouge">i</code> enormous. Again, <code class="language-plaintext highlighter-rouge">vect[i]</code> will cause problems in the next loop iteration.</p>
+  </li>
+</ol>
+
+<p>The right way to implement reverse printing is as follows, which isn’t intuitive but at least it’s correct:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span><span class="p">(</span><span class="n">vect</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">size_t</span> <span class="n">i</span><span class="p">{</span><span class="n">vect</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">};</span>
+    <span class="k">while</span><span class="p">(</span><span class="nb">true</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">vect</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">break</span><span class="p">;</span>
+        <span class="o">--</span><span class="n">i</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This is why C++20 introduced <a href="https://en.cppreference.com/w/cpp/iterator/size"><code class="language-plaintext highlighter-rouge">std::ssize()</code></a>, a <em>function</em> which returns a <em>signed</em> integer containing the number of elements in any container: a vector, an array, etc. This fantastic little function makes the code more natural when iterating forwards <em>and</em> backwards:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Forward loop. It works even if `vect` is empty</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">{};</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">ssize</span><span class="p">(</span><span class="n">vect</span><span class="p">);</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">vect</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// Backward loop. It works even if `vect` is empty</span>
+<span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span><span class="p">{</span><span class="n">std</span><span class="o">::</span><span class="n">ssize</span><span class="p">(</span><span class="n">vect</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">};</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="o">--</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">vect</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;&lt;</span> <span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>(Alongside <code class="language-plaintext highlighter-rouge">ssize()</code>, the C++ standard mandates the presence of <code class="language-plaintext highlighter-rouge">size()</code>, which still returns an unsigned integer and is just a wrapper around <code class="language-plaintext highlighter-rouge">std::vector::size()</code>, <code class="language-plaintext highlighter-rouge">std::array::size()</code>, and so on. The <code class="language-plaintext highlighter-rouge">size()</code> function was introduced in C++17.)</p>
+
+<p>As I hope to have explained, the problem with <code class="language-plaintext highlighter-rouge">unsigned</code> integers is that their wrapping behavior forces you to be careful every time you perform a decrement or subtraction. This problem also affects signed integers (and in some sense, it’s even more severe because the C++ standard doesn’t tell you what will happen!). Still, it occurs less frequently because it only triggers when variables take on huge values (±2 billion for 32-bit integers).</p>
+
+<p>Using unsigned integers to indicate the number of elements in a set might seem a good idea. Still, decades of experience from thousands of programmers have shown that it’s actually <em>a bad solution</em> in practice.</p>
+
+<p>A quick look at the way more recent languages deal with unsigned numbers reveals that the lesson seems to have been learned:</p>
+
+<ul>
+  <li>
+    <p>Here is a post from the Nim programming language forum where Araq (Andras Rumpf, creator of Nim) shares his thoughts on unsigned numbers: <a href="https://forum.nim-lang.org/t/313#1631">https://forum.nim-lang.org/t/313#1631</a></p>
+  </li>
+  <li>
+    <p>The Julia language marks a clear distinction between signed and unsigned numbers by printing the latters using hexadecimal notation: <a href="https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/#Integers">https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/#Integers</a></p>
+  </li>
+  <li>
+    <p>The Ada language forces you to use a more verbose syntax for unsigned numbers: <a href="https://learn.adacore.com/courses/intro-to-ada/chapters/strongly_typed_language.html#unsigned-types">https://learn.adacore.com/courses/intro-to-ada/chapters/strongly_typed_language.html#unsigned-types</a>. Moreover, Ada checks underflows and overflows for signed integers, and it makes the program crash whenever one of them happens. This is almost always the best choice!</p>
+  </li>
+</ul>
+
+  </div><a class="u-url" href="/c++/2025/02/02/unsigned-and-c++.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <script src="https://utteranc.es/client.js"
+          repo="ziotom78/ziotom78.github.io"
+          issue-term="title"
+          theme="github-light"
+          crossorigin="anonymous"
+          async>
+  </script>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Maurizio&#39;s blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Maurizio&#39;s blog</li><li><a class="u-email" href="mailto:ziotom78@gmail.com">ziotom78@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/ziotom78"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">ziotom78</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>My personal blog, where I write about stuff related to my work and my hobbies.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

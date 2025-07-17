@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>xdotool! | Maurizio’s blog</title>
+<meta name="generator" content="Jekyll v4.3.4" />
+<meta property="og:title" content="xdotool!" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="In my first post on this new platform, I want to tell you how I use xdotool, a command-line program to simulate mouse actions and keypresses." />
+<meta property="og:description" content="In my first post on this new platform, I want to tell you how I use xdotool, a command-line program to simulate mouse actions and keypresses." />
+<link rel="canonical" href="/xdotool/2023/12/23/xdotool.html" />
+<meta property="og:url" content="/xdotool/2023/12/23/xdotool.html" />
+<meta property="og:site_name" content="Maurizio’s blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2023-12-23T00:00:00+01:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="xdotool!" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2023-12-23T00:00:00+01:00","datePublished":"2023-12-23T00:00:00+01:00","description":"In my first post on this new platform, I want to tell you how I use xdotool, a command-line program to simulate mouse actions and keypresses.","headline":"xdotool!","mainEntityOfPage":{"@type":"WebPage","@id":"/xdotool/2023/12/23/xdotool.html"},"url":"/xdotool/2023/12/23/xdotool.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="Maurizio&apos;s blog" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Maurizio&#39;s blog</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">xdotool!</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2023-12-23T00:00:00+01:00" itemprop="datePublished">Dec 23, 2023
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>In my first post on this new platform, I want to tell you how I use
+<code class="language-plaintext highlighter-rouge">xdotool</code>, a command-line program to simulate mouse actions and
+keypresses.</p>
+
+<h1 id="what-does-xdotool-do">What does <code class="language-plaintext highlighter-rouge">xdotool</code> do?</h1>
+
+<p>The description on the <a href="https://github.com/jordansissel/xdotool">main
+repository</a> states</p>
+
+<blockquote>
+  <p>xdotool lets you simulate keyboard input and mouse activity, move and resize windows, etc. It does this using X11’s XTEST extension and other Xlib functions.</p>
+</blockquote>
+
+<p>(<strong>Caution</strong>: at the moment, it does not seem that <code class="language-plaintext highlighter-rouge">xdotool</code> supports
+Wayland. Since I’m still using X11, this is not an issue for me. If
+you use Wayland, I’ve heard that available alternatives are
+<a href="https://git.sr.ht/~geb/dotool">dotool</a> or
+<a href="https://github.com/ReimuNotMoe/ydotool">ydotool</a>.)</p>
+
+<p>For instance, if you type</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>xdotool click 1
+</code></pre></div></div>
+
+<p>the program will simulate the click of the left mouse button on the same spot where the actual mouse cursor is. Similarly,</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>xdotool type "Hello, world"
+</code></pre></div></div>
+
+<p>will immediately type the characters <code class="language-plaintext highlighter-rouge">Hello, world</code> so fast that you’ll probably see them <em>twice</em>: once before the prompt of your shell appears, and another when the shell catches up and shows the prompt:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[tomasi@maurizio-tombook ~] xdotool type "Hello, world"
+Hello, world
+[tomasi@maurizio-tombook ~] Hello, world
+</code></pre></div></div>
+
+<p>Another possibility is to simulate key events like <code class="language-plaintext highlighter-rouge">Ctrl-X</code>, <code class="language-plaintext highlighter-rouge">Alt-F4</code>, etc.
+The program can also interact with windows and do more complicated stuff, but in this post I’ll just show you what I usually do with these three basic tasks: mouse movements, keyboard typing, keypresses.</p>
+
+<h1 id="typing-passwords">Typing passwords</h1>
+
+<p>Somebody might think that <code class="language-plaintext highlighter-rouge">xdotool</code> has little practical use.
+When used alone, it is admittedly nothing special, but it unleashes its power when used in scripts or combined with the <code class="language-plaintext highlighter-rouge">sleep</code> command.</p>
+
+<p>A common pattern I use is to make the prompt wait for a few seconds to give me time to switch to another application using <code class="language-plaintext highlighter-rouge">Alt+Tab</code> and then fire <code class="language-plaintext highlighter-rouge">xdotool</code> to do some work.</p>
+
+<p>For instance, I regularly use <a href="https://keepassxc.org/">KeePassXC</a> to manage my passwords.
+It’s a password manager that lets you associate a password with different sites and even generate random passwords with high entropy.
+When I need to log to a website, I follow this routine:</p>
+
+<ol>
+  <li>Open KeePassXC and select the website from my personal database;</li>
+  <li>Press <code class="language-plaintext highlighter-rouge">Ctrl+B</code> to copy the username in the clipboard;</li>
+  <li>Paste the username in the website;</li>
+  <li>Press <code class="language-plaintext highlighter-rouge">Ctrl+C</code> to copy the password in the clipboard;</li>
+  <li>Paste it again in the website.</li>
+</ol>
+
+<p>This procedure works 99% of the time, and provides me with a feeling of security: I am not using the same password in more than one website, as everybody knows this is <strong>dangerous</strong>. (If you do not know why, see <a href="https://xkcd.com/792/">this XKCD comic</a>).</p>
+
+<p>However, there are a few website I have to use that require you to <em>type</em> your password, as they disable the clipboard while the focus is on the password field.
+I cannot really understand what is the purpose of this: purportedly, they say that in this way you are forced to actually remember your password. However, since the same websites require you to use complicated passwords with non-letter characters and digits, my feeling is that most of the users will just scratch it on a post-it and leave it on their monitor.
+But I digress.</p>
+
+<p>For these situations, I implemented <a href="https://gist.github.com/ziotom78/2056c4c2c325910fad908d5218058fd6"><code class="language-plaintext highlighter-rouge">typecb</code></a>, a short Bash script that takes the contents of the clipboard and type it using <code class="language-plaintext highlighter-rouge">xdotool</code>:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/sh</span>
+
+<span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="nv">$1</span><span class="s2">"</span> <span class="o">==</span> <span class="s2">""</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">cat</span> <span class="o">&lt;&lt;</span><span class="no">EOF</span><span class="sh">
+Paste the contents of the keyboard as if they were typed using the keyboard
+
+Usage: </span><span class="si">$(</span><span class="nb">basename</span> <span class="nv">$0</span><span class="si">)</span><span class="sh"> WAIT_TIME
+
+where WAIT_TIME is the delay, like "3s" (three seconds)
+</span><span class="no">EOF
+</span>    <span class="nb">exit </span>1
+<span class="k">fi
+
+</span><span class="nb">readonly </span><span class="nv">wait_time</span><span class="o">=</span><span class="s2">"</span><span class="nv">$1</span><span class="s2">"</span>
+
+<span class="nb">sleep</span> <span class="nv">$wait_time</span> <span class="o">&amp;&amp;</span> xdotool <span class="nb">type</span> <span class="s2">"</span><span class="si">$(</span>xclip <span class="nt">-o</span><span class="si">)</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<p>The procedure I follow to log in in these website is just slightly modified:</p>
+
+<ol>
+  <li>Open KeePassXC and select the website from my personal database <em>as usual</em>;</li>
+  <li>Press <code class="language-plaintext highlighter-rouge">Ctrl+B</code> to copy the username in the clipboard <em>as usual</em>;</li>
+  <li>Paste the username in the website <em>as usual</em>;</li>
+  <li>Press <code class="language-plaintext highlighter-rouge">Ctrl+C</code> to copy the password in the clipboard <em>as usual</em>;</li>
+  <li>Go back to the web browser;</li>
+  <li>Press <code class="language-plaintext highlighter-rouge">Alt+F2</code>, which on my desktop (KDE) asks for a command to be executed;</li>
+  <li>Type <code class="language-plaintext highlighter-rouge">typecb 1s</code> and see <code class="language-plaintext highlighter-rouge">xdotool</code> paste the password in the webbrowser</li>
+</ol>
+
+<p>I could automate the stuff a bit more, e.g. by including step 4 and 5 in <code class="language-plaintext highlighter-rouge">typecb</code> using <code class="language-plaintext highlighter-rouge">xdotool key Ctrl+C</code> and <code class="language-plaintext highlighter-rouge">xdotool key Alt+Tab</code>, but I use <code class="language-plaintext highlighter-rouge">typecb</code> in a few other situations where this would not be useful.</p>
+
+<h1 id="filling-forms">Filling forms</h1>
+
+<p>Another situation where I find <code class="language-plaintext highlighter-rouge">xdotool</code> invaluable is in the filling of a few webforms required by my University.</p>
+
+<p>I have to track any student-related activity I do during my work hours, like classes and student reception.
+This means that every time I have a chat with a student, I am required to note down this time on a webform in a private personal page.
+Since I do a lot of student reception, this is a quite boring task to do, and it is exacerbated by the fact that the webpage requires a number of mouse clicks to focus the many input fields. (We’re talking about <em>modern</em> web design, so of course <code class="language-plaintext highlighter-rouge">Tab</code> doesn’t work reliably 100% of the time, sigh!)</p>
+
+<p>Here <code class="language-plaintext highlighter-rouge">xdotool</code> comes to the rescue.
+I painstakingly recorded the mouse movement I needed to select each of the entries and implemented a Bash script to simulate their sequence.
+It took me roughly half an hour to come with something that actually worked; the biggest part was picking the right screen coordinates (here <code class="language-plaintext highlighter-rouge">xdotool</code> helps again with its command <code class="language-plaintext highlighter-rouge">xdotool getmouselocation</code>) and calibrating the delays so that I give enough time to the webform to update its fields.
+To be sure that the coordinates do not change, I enlarged the Firefox window to full screen; otherwise, the script would work only if Firefox has its window always in the same place on the desktop.</p>
+
+<p>The script is quite long, here is just a snippet to give you a taste of how it is implemented:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="nb">readonly </span><span class="nv">MOUSE_DELAY</span><span class="o">=</span>0.25s
+<span class="nb">readonly </span><span class="nv">TYPE_DELAY_MS</span><span class="o">=</span>50
+
+<span class="c"># Here comes the part where I parse command line arguments</span>
+...
+
+<span class="c"># Scroll to the beginning of the page</span>
+xdotool key Home
+<span class="nb">sleep</span> <span class="nv">$MOUSE_DELAY</span>
+
+<span class="c"># Click on «Nuova attività»</span>
+xdotool mousemove 150 492
+<span class="nb">sleep</span> <span class="nv">$MOUSE_DELAY</span>
+xdotool click 1
+<span class="nb">sleep</span> <span class="nv">$MOUSE_DELAY</span>
+
+<span class="c"># Click on «Forma didattica»</span>
+xdotool mousemove_relative <span class="nt">--</span> 45 <span class="nt">-172</span>
+<span class="nb">sleep</span> <span class="nv">$MOUSE_DELAY</span>
+xdotool click 1
+<span class="nb">sleep</span> <span class="nv">$MOUSE_DELAY</span>
+
+<span class="c"># Pick the item from the combo box</span>
+<span class="c"># 3 ↓ keys: "Compiti di orientamento/ricevimento per studenti"</span>
+xdotool key Down Down Down Enter
+<span class="nb">sleep</span> <span class="nv">$MOUSE_DELAY</span>
+
+<span class="c"># Open the date control</span>
+xdotool mousemove_relative <span class="nt">--</span> <span class="nt">-70</span> 140
+<span class="nb">sleep</span> <span class="nv">$MOUSE_DELAY</span>
+xdotool click 1
+<span class="nb">sleep</span> <span class="nv">$MOUSE_DELAY</span>
+
+<span class="c"># Etc.</span>
+...
+</code></pre></div></div>
+
+<p>Note the command <code class="language-plaintext highlighter-rouge">xdotool mousemove_relative</code>: this tells how much the mouse should move <em>with respect to its current position</em>.
+The first version of my script just used <code class="language-plaintext highlighter-rouge">xdotool mousemove</code> everywhere, which means that the coordinate are absolute: it’s much easier to create the script in this way, as you just put the same numbers printed by <code class="language-plaintext highlighter-rouge">xdotool getmouselocation</code>.
+However, sometimes I change the KDE theme I use, and this affects the height of the title bars, the location of the task bar, etc.
+I found that these changes likely affect the placement of the widgets in the webpage.
+Using <code class="language-plaintext highlighter-rouge">xdotool mousemove</code> just once at the top of the script and then always rely on <code class="language-plaintext highlighter-rouge">xdotool mousemove_relative</code> ensures that every time I change the KDE theme, I must just fix the first call to <code class="language-plaintext highlighter-rouge">xdotool mousemove</code> and everything else continues to work. (Of course, this trick does not save me from changes to the layout of the webpage, but luckly the layout has been the same for years…)</p>
+
+<p>The script requires the parameters detailing my activity (the date, the number of hours, and the name of the student) to be passed on the command line:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./unimi-insert-student-reception 23/12/2023 2 "Mario Rossi"
+</code></pre></div></div>
+
+<p>Every time I have office hours, I keep track of the students in a CSV file on my desktop with this layout:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>16/01/2023, 2, Mario Rossi
+19/01/2023, 1, Luca Bianchi
+...
+</code></pre></div></div>
+
+<p>Once in a while, I log in my University, open the page about activities, and I fire a short script that uses <code class="language-plaintext highlighter-rouge">gawk</code> to extract information from the CSV file and repeatedly call the <code class="language-plaintext highlighter-rouge">xdotool</code> script:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cat student-reception.csv | \
+    gawk -F "," '/./ { printf("unimi-insert-student-reception.sh \"%s\" %d \"%s\"\n", $1, $2, $3); }' &gt; script.sh
+</code></pre></div></div>
+
+<p>This creates a file <code class="language-plaintext highlighter-rouge">script.sh</code> with this format:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>unimi-insert-student-reception.sh <span class="s2">"16/01/2023"</span> 2 <span class="s2">" Mario Rossi"</span>
+unimi-insert-student-reception.sh <span class="s2">"19/01/2023"</span> 1 <span class="s2">" Luca Bianchi"</span>
+</code></pre></div></div>
+
+<p>(Yeah, I know I could make <code class="language-plaintext highlighter-rouge">gawk</code> directly call <code class="language-plaintext highlighter-rouge">unimi-insert-student-reception.sh</code>, but I like checking the sequence of commands before actually <em>firing</em> them.)</p>
+
+<p>I then run <code class="language-plaintext highlighter-rouge">script.sh</code> using the command</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sleep 3s &amp;&amp; bash script.sh
+</code></pre></div></div>
+
+<p>where of course <code class="language-plaintext highlighter-rouge">sleep 3s</code> gives me enough time to switch to Firefox using <code class="language-plaintext highlighter-rouge">Alt+Tab</code>.</p>
+
+<h1 id="recording-demos">Recording demos</h1>
+
+<p>I often record videos for my classes. They are used to teach how to use Git, how to write programs using IDEs, etc.</p>
+
+<p>I like that these videos are always kept up-to-date: if the video shows a Julia session, I would like that the banner shown when Julia starts presents a reasonably recent version number.
+Moreover, it can be that a recent version of the tool/website I am using in the video slightly changes its interface.</p>
+
+<p>I have recently started writing <code class="language-plaintext highlighter-rouge">xdotool</code> scripts that run the commands needed to perform the actions recorded in the video: in this way I can easily update the video.</p>
+
+<p>Surely it takes more time to prepare a video, but the result is far nicer: there are no more wrong keypresses, delays due to me forgetting what to do next, etc.
+And I do no need to perform video editing!</p>
+
+  </div><a class="u-url" href="/xdotool/2023/12/23/xdotool.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <script src="https://utteranc.es/client.js"
+          repo="ziotom78/ziotom78.github.io"
+          issue-term="title"
+          theme="github-light"
+          crossorigin="anonymous"
+          async>
+  </script>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Maurizio&#39;s blog</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Maurizio&#39;s blog</li><li><a class="u-email" href="mailto:ziotom78@gmail.com">ziotom78@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/ziotom78"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">ziotom78</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>My personal blog, where I write about stuff related to my work and my hobbies.</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
