@@ -6,10 +6,13 @@ build:
 
 # Deploy the site using git worktree
 deploy:
+    #!/usr/bin/env bash
+    set -euo pipefail # Recommended for robust shell scripts
+
     just build
     # Check for uncommitted changes
     git diff --quiet || (echo "❌ You have uncommitted changes. Commit them before deploying." && exit 1)
-    export TMP_DIR := $(mktemp -d)
+    TMP_DIR=$(mktemp -d)
     cp -r _site/* "$TMP_DIR"
     cp -r _site/. "$TMP_DIR" 2>/dev/null || true # Include dotfiles if any
     git fetch origin gh-pages || true
