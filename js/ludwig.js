@@ -8,7 +8,7 @@ export function initLudwigViewer(containerId) {
 
     // We use an orthographic camera to avoid perspective illusions
     const aspect = container.clientWidth / container.clientHeight;
-    const zoom = 1.5; // Adjust zoom to control visible area
+    const zoom = 2.0; // Adjust zoom to control visible area
     const camera = new THREE.OrthographicCamera(
         -zoom * aspect, // left
         zoom * aspect, // right
@@ -24,6 +24,23 @@ export function initLudwigViewer(containerId) {
     });
     renderer.setClearColor(0xffffff, 1);
     container.appendChild(renderer.domElement);
+
+    function addAxis(x, y, z, color) {
+        const material = new THREE.LineBasicMaterial({
+	    color: color
+        });
+        const points = [];
+        points.push(new THREE.Vector3(0, 0, 0));
+        points.push(new THREE.Vector3(x, y, z));
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+        const line = new THREE.Line(geometry, material);
+        scene.add(line);
+    }
+
+    addAxis(1.5, 0, 0, 0x88ff88);
+    addAxis(0, 1.5, 0, 0x8888ff);
+    addAxis(0, 0, 1.5, 0xff8888);
 
     // Vectors
     const arrowHeadLength = 0.1;
@@ -69,7 +86,7 @@ export function initLudwigViewer(containerId) {
 
     scene.add(rLabel, e1Label, e2Label);
 
-    const boresightCylinderGeom = new THREE.CylinderGeometry(0.005, 0.005, 0.5, 32);
+    const boresightCylinderGeom = new THREE.CylinderGeometry(0.005, 0.005, 0.5, 16);
     const boresightCylinderMat = new THREE.MeshBasicMaterial({
         color: 0x000000
     });
@@ -89,7 +106,7 @@ export function initLudwigViewer(containerId) {
     scene.add(polCylinder);
 
     const sphereMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(1, 32, 32),
+        new THREE.SphereGeometry(1, 16, 16),
         new THREE.MeshBasicMaterial({
             color: 0xaaaaaa,
             wireframe: true,
