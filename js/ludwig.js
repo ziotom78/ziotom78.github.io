@@ -86,7 +86,7 @@ export function initLudwigViewer(containerId) {
 
     scene.add(rLabel, e1Label, e2Label);
 
-    const boresightCylinderGeom = new THREE.CylinderGeometry(0.005, 0.005, 0.5, 32);
+    const boresightCylinderGeom = new THREE.CylinderGeometry(0.005, 0.005, 0.5, 16);
     const boresightCylinderMat = new THREE.MeshBasicMaterial({
         color: 0x000000
     });
@@ -106,7 +106,7 @@ export function initLudwigViewer(containerId) {
     scene.add(polCylinder);
 
     const sphereMesh = new THREE.Mesh(
-        new THREE.SphereGeometry(1, 32, 32),
+        new THREE.SphereGeometry(1, 16, 16),
         new THREE.MeshBasicMaterial({
             color: 0xaaaaaa,
             wireframe: true,
