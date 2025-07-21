@@ -91,6 +91,53 @@ Another feature is that the only pole where polarization is undefined is along t
 </script>
 {% endraw %}
 
+
+# Converting back and forth between the spherical basis and Ludwig’s
+
+Assume that we have an electric field $\vec E$. We can decompose it on the spherical basis:
+$$
+\vec E = E_r\,\hat e_r + E_\theta\,\hat e_\theta + E_\phi\,\hat e_\phi.
+$$; let’s assume that we are in the far field, so $E_r = 0$.
+
+If we write the expression that transforms $\vec E$ from the polar basis to Ludwig’s basis:
+{% katex display %}
+\begin{pmatrix}
+E_\text{co}\\
+E_\text{cx}
+\end{pmatrix} = \begin{pmatrix}
+\cos\phi &-\sin\phi\\
+\sin\phi &\cos\phi
+\end{pmatrix}
+\begin{pmatrix}
+E_\theta\\
+E_\phi
+\end{pmatrix} =
+R(\phi) \begin{pmatrix}
+E_\theta\\
+E_\phi
+\end{pmatrix},
+{% endkatex %}
+then it is evident that the $(E_\text{co}\ E_\text{cx})$ vector is just a rotation of $(E_\theta\ E_\phi)$ by the angle $\phi$ on the plane tangent to the sphere. From this, it is trivial to convert back from Ludwig’s convention to spherical coordinates:
+{% katex display %}
+\begin{pmatrix}
+E_\theta\\
+E_\phi
+\end{pmatrix} =
+R(-\phi) \begin{pmatrix}
+E_\text{co}\\
+E_\text{cx}
+\end{pmatrix} =
+\begin{pmatrix}
+\cos\phi &\sin\phi\\
+-\sin\phi &\cos\phi
+\end{pmatrix}
+\begin{pmatrix}
+E_\text{co}\\
+E_\text{cx}
+\end{pmatrix}.
+{% endkatex %}
+
+
 # Conclusions
 
 Ludwig’s third convention offers a practical way for analyzing antenna polarization in the far field, as it prevents a singularity along the boresight direction and provides a natural way to think of “co-polar” and “cross-polar” directions. These are some of the reasons why it is widely used in antenna pattern measurements and satellite communications.
