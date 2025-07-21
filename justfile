@@ -19,19 +19,20 @@ deploy:
       exit 1
     fi
 
-    # Create a temporary directory
-    TMP_DIR=$(mktemp -d)
-    echo "📁 Using temporary directory: $TMP_DIR"
+    # Create a temporary directory name (without creating it)
+    TMP_DIR=$(mktemp -u -t jekyll-deploy-XXXX)
 
-    # Copy site contents to the temp dir
-    cp -r _site/* "$TMP_DIR"
-    cp -r _site/. "$TMP_DIR" 2>/dev/null || true  # Include dotfiles if any
+    echo "📁 Preparing temporary worktree at: $TMP_DIR"
 
-    # Fetch remote branch if it exists
+    # Fetch remote gh-pages if it exists
     git fetch origin gh-pages || true
 
-    # Add worktree
+    # Add worktree (this creates TMP_DIR)
     git worktree add "$TMP_DIR" gh-pages
+
+    # Copy the built site into the worktree
+    cp -r _site/* "$TMP_DIR"
+    cp -r _site/. "$TMP_DIR" 2>/dev/null || true  # Include dotfiles if present
 
     # Commit and push from within the worktree
     pushd "$TMP_DIR" > /dev/null
