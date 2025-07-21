@@ -8,7 +8,7 @@ export function initLudwigViewer(containerId) {
 
     // We use an orthographic camera to avoid perspective illusions
     const aspect = container.clientWidth / container.clientHeight;
-    const zoom = 1.5; // Adjust zoom to control visible area
+    const zoom = 2.0; // Adjust zoom to control visible area
     const camera = new THREE.OrthographicCamera(
         -zoom * aspect, // left
         zoom * aspect, // right
