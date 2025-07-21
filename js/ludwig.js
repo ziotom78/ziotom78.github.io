@@ -25,6 +25,23 @@ export function initLudwigViewer(containerId) {
     renderer.setClearColor(0xffffff, 1);
     container.appendChild(renderer.domElement);
 
+    function addAxis(x, y, z, color) {
+        const material = new THREE.LineBasicMaterial({
+	    color: color
+        });
+        const points = [];
+        points.push(new THREE.Vector3(0, 0, 0));
+        points.push(new THREE.Vector3(x, y, z));
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+        const line = new THREE.Line(geometry, material);
+        scene.add(line);
+    }
+
+    addAxis(1.5, 0, 0, 0x88ff88);
+    addAxis(0, 1.5, 0, 0x8888ff);
+    addAxis(0, 0, 1.5, 0xff8888);
+
     // Vectors
     const arrowHeadLength = 0.1;
     const arrowHeadWidth = 0.05;
